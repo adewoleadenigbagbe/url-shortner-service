@@ -33,7 +33,7 @@ func ConnectToSQLite() (*sql.DB, error) {
 		return nil, err
 	}
 
-	err = executeTableCmd(db, Down)
+	err = executeTableCmd(db, Up)
 	if err != nil {
 		return nil, err
 	}
