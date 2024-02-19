@@ -1,0 +1,5 @@
+BEGIN;
+DROP TABLE users;
+DROP TABLE urls;
+DROP TABLE userkeys;
+COMMIT;
