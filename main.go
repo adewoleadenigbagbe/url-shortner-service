@@ -1,16 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
-	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
+	"github.com/adewoleadenigbagbe/url-shortner-service/core"
 )
 
 func main() {
-	_, err := database.ConnectToSQLite()
+	app, err := core.ConfigureApp()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("done")
+
+	server := core.ApplicationServer{
+		App: app,
+	}
+
+	server.Serve()
 }
