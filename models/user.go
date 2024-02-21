@@ -1,11 +1,22 @@
 package models
 
-type UserRequest struct {
-	UserName string
-	Email    string
+type RegisterUserRequest struct {
+	UserName string `json:"username"`
+	Email    string `json:"email"`
 }
 
-type UserResponse struct {
-	Id     int
-	ApiKey string
+type RegisterUserResponse struct {
+	Id     string `json:"userId"`
+	ApiKey string `json:"apikey"`
+}
+
+type SigInUserRequest struct {
+	Id    string `json:"id"`
+	Email string `json:"email"`
+}
+
+type SignInUserResponse struct {
+	Id     string `json:"userId"`
+	ApiKey string `json:"apikey"`
+	Token  string `json:"access_token"`
 }

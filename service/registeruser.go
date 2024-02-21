@@ -25,7 +25,7 @@ type AuthService struct {
 
 func (service AuthService) RegisterUser(userContext echo.Context) error {
 	var err error
-	request := new(models.UserRequest)
+	request := new(models.RegisterUserRequest)
 	err = userContext.Bind(request)
 	if err != nil {
 		return userContext.JSON(http.StatusBadRequest, err.Error())
@@ -38,7 +38,7 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	}
 
 	//generate api key
-	userid := sequentialguid.NewSequentialGuid()
+	userid := sequentialguid.NewSequentialGuid().String()
 	usercreatedOn := time.Now()
 
 	tx, _ := service.Db.Begin()
@@ -50,7 +50,7 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	}
 
 	//save keys
-	userKeyId := sequentialguid.NewSequentialGuid()
+	userKeyId := sequentialguid.NewSequentialGuid().String()
 	apikey := helpers.GenerateApiKey(request.Email)
 	keyCreatedOn := time.Now()
 	expiryDate := keyCreatedOn.AddDate(ExpiryYear, 0, 0)
@@ -58,15 +58,15 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
 	if err != nil {
 		tx.Rollback()
-		return userContext.JSON(http.StatusBadRequest, err.Error())
+		return userContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	tx.Commit()
 
-	return nil
+	return userContext.JSON(http.StatusOK, models.RegisterUserResponse{Id: userid, ApiKey: userKeyId})
 }
 
-func validateUser(user models.UserRequest) []error {
+func validateUser(user models.RegisterUserRequest) []error {
 	var validationErrors []error
 
 	if user.UserName == "" {
