@@ -16,7 +16,7 @@ func AuthorizeUser(next echo.HandlerFunc) echo.HandlerFunc {
 
 		apikey := context.Request().Header["X-Api-Key"][0]
 		if len(apikey) == 0 {
-			return context.JSON(http.StatusBadRequest, "user Api Key Missing in the header")
+			return context.JSON(http.StatusBadRequest, "user ApiKey Missing in the header")
 		}
 
 		if !isCurrentUser(id, apikey) {

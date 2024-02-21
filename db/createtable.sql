@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS urls(
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    ExpirationDate DATETIME NOT NULL,
+   IsDeprecated BOOLEAN NOT NULL,
    UserId CHAR(36) NOT NULL
 );
 CREATE UNIQUE INDEX idx_original_url ON urls (OriginalUrl);

@@ -29,7 +29,7 @@ func (service UrlService) CreateShortUrl(userContext echo.Context) error {
 	var hashUrl string
 	now := time.Now()
 	expirationDate := now.AddDate(expirySpan, 0, 0)
-	_, err = service.Db.Exec("INSERT INTO users VALUES(?,?,?,?,?,?);", hashUrl, request.OriginalUrl, now, now, expirationDate, request.UserId)
+	_, err = service.Db.Exec("INSERT INTO users VALUES(?,?,?,?,?,?,?);", hashUrl, request.OriginalUrl, now, now, expirationDate, false, request.UserId)
 	if err != nil {
 		return userContext.JSON(http.StatusInternalServerError, err)
 	}

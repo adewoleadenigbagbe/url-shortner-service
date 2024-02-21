@@ -7,14 +7,14 @@ import (
 )
 
 func main() {
-	app, err := core.ConfigureApp()
+	_, err := core.ConfigureApp()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server := core.ApplicationServer{
-		App: app,
-	}
+	// server := core.ApplicationServer{
+	// 	App: app,
+	// }
 
-	server.Serve()
+	// server.Serve()
 }
