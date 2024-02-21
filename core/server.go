@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 )
 
@@ -15,6 +16,11 @@ type ApplicationServer struct {
 }
 
 func (server *ApplicationServer) Serve() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	server.App.echo.Logger.SetLevel(log.INFO)
 	RegisterRoutes(server.App)
 

@@ -1,8 +1,7 @@
 package services
 
 import (
-	"database/sql"
-	"fmt"
+	"errors"
 	"net/http"
 	"regexp"
 	"time"
@@ -15,13 +14,9 @@ import (
 )
 
 const (
-	ExpiryYear = 1
-	EmailRegex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+	expiryYear = 1
+	emailRegex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
 )
-
-type AuthService struct {
-	Db *sql.DB
-}
 
 func (service AuthService) RegisterUser(userContext echo.Context) error {
 	var err error
@@ -53,7 +48,7 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	userKeyId := sequentialguid.NewSequentialGuid().String()
 	apikey := helpers.GenerateApiKey(request.Email)
 	keyCreatedOn := time.Now()
-	expiryDate := keyCreatedOn.AddDate(ExpiryYear, 0, 0)
+	expiryDate := keyCreatedOn.AddDate(expiryYear, 0, 0)
 
 	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
 	if err != nil {
@@ -70,12 +65,12 @@ func validateUser(user models.RegisterUserRequest) []error {
 	var validationErrors []error
 
 	if user.UserName == "" {
-		validationErrors = append(validationErrors, fmt.Errorf("username is required"))
+		validationErrors = append(validationErrors, errors.New("username is required"))
 	}
 
-	isEmailValid, _ := regexp.MatchString(EmailRegex, user.Email)
+	isEmailValid, _ := regexp.MatchString(emailRegex, user.Email)
 	if !isEmailValid {
-		validationErrors = append(validationErrors, fmt.Errorf("email is invalid"))
+		validationErrors = append(validationErrors, errors.New("email is invalid"))
 	}
 	return validationErrors
 }

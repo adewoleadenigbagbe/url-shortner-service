@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS urls(
    ExpirationDate DATETIME NOT NULL,
    UserId CHAR(36) NOT NULL
 );
+CREATE UNIQUE INDEX idx_original_url ON urls (OriginalUrl);
 CREATE INDEX idx_userId ON Urls (UserId);
 
 

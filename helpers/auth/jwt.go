@@ -29,16 +29,16 @@ func GenerateJWT(user models.SigInUserRequest) (string, error) {
 }
 
 // validate JWT token
-func ValidateJWT(context echo.Context) error {
+func ValidateJWT(context echo.Context) (string, error) {
 	token, err := getToken(context)
 	if err != nil {
-		return err
+		return "", err
 	}
-	_, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
-		return nil
+		return claims["id"].(string), nil
 	}
-	return errors.New("invalid token provided")
+	return "", errors.New("invalid token provided")
 }
 
 // // check token validity

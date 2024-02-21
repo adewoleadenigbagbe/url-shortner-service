@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"encoding/base64"
-	"fmt"
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
@@ -13,7 +12,7 @@ func GenerateApiKey(email string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Hash to store:", string(hash))
 
-	return base64.StdEncoding.EncodeToString(hash)
+	//taking just 20 characters from the hash, as the first 15 are mostly duplicate from the hash
+	return base64.StdEncoding.EncodeToString(hash)[15:35]
 }

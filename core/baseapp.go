@@ -10,6 +10,7 @@ import (
 type BaseApp struct {
 	echo        *echo.Echo
 	AuthService services.AuthService
+	UrlService  services.UrlService
 }
 
 func ConfigureApp() (*BaseApp, error) {
@@ -20,6 +21,9 @@ func ConfigureApp() (*BaseApp, error) {
 	app := &BaseApp{
 		echo: echo.New(),
 		AuthService: services.AuthService{
+			Db: db,
+		},
+		UrlService: services.UrlService{
 			Db: db,
 		},
 	}
