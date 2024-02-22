@@ -1,14 +1,16 @@
 package core
 
 import (
+	"database/sql"
+
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
 	services "github.com/adewoleadenigbagbe/url-shortner-service/service"
-
 	"github.com/labstack/echo/v4"
 )
 
 type BaseApp struct {
-	echo        *echo.Echo
+	Echo        *echo.Echo
+	Db          *sql.DB
 	AuthService services.AuthService
 	UrlService  services.UrlService
 }
@@ -19,7 +21,8 @@ func ConfigureApp() (*BaseApp, error) {
 		return nil, err
 	}
 	app := &BaseApp{
-		echo: echo.New(),
+		Echo: echo.New(),
+		Db:   db,
 		AuthService: services.AuthService{
 			Db: db,
 		},

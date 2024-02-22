@@ -9,7 +9,6 @@ import (
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
-
 	"github.com/labstack/echo/v4"
 )
 

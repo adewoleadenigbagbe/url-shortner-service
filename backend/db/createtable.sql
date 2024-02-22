@@ -14,6 +14,9 @@ on users (Email);
 CREATE TABLE IF NOT EXISTS urls(
    Hash VARCHAR(16) PRIMARY KEY NOT NULL,
    OriginalUrl VARCHAR(255) NOT NULL,
+   DomainName VARCHAR(255) NOT NULL,
+   Alias VARCHAR(10) NULL,
+   Hits INTEGER NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    ExpirationDate DATETIME NOT NULL,

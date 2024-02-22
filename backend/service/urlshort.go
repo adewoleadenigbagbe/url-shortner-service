@@ -1,10 +1,12 @@
 package services
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
 
+	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
 )
@@ -29,7 +31,9 @@ func (service UrlService) CreateShortUrl(userContext echo.Context) error {
 	var hashUrl string
 	now := time.Now()
 	expirationDate := now.AddDate(expirySpan, 0, 0)
-	_, err = service.Db.Exec("INSERT INTO users VALUES(?,?,?,?,?,?,?);", hashUrl, request.OriginalUrl, now, now, expirationDate, false, request.UserId)
+	_, err = service.Db.Exec("INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?);",
+		hashUrl, request.OriginalUrl, request.DomainName, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
+
 	if err != nil {
 		return userContext.JSON(http.StatusInternalServerError, err)
 	}
@@ -45,6 +49,11 @@ func validateUrlRequest(request models.CreateUrlRequest) []error {
 
 	if request.UserId == "" {
 		validationErrors = append(validationErrors, errors.New("userId is required"))
+	}
+
+	isValid := helpers.IsValidUrl(request.OriginalUrl)
+	if !isValid {
+		validationErrors = append(validationErrors, errors.New("invalid url"))
 	}
 
 	return validationErrors

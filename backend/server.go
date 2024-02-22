@@ -1,4 +1,4 @@
-package core
+package main
 
 import (
 	"context"
@@ -7,12 +7,14 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/adewoleadenigbagbe/url-shortner-service/core"
+	"github.com/adewoleadenigbagbe/url-shortner-service/routes"
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 )
 
 type ApplicationServer struct {
-	App *BaseApp
+	App *core.BaseApp
 }
 
 func (server *ApplicationServer) Serve() {
@@ -21,13 +23,14 @@ func (server *ApplicationServer) Serve() {
 		log.Fatal("Error loading .env file")
 	}
 
-	server.App.echo.Logger.SetLevel(log.INFO)
-	RegisterRoutes(server.App)
+	server.App.Echo.Logger.SetLevel(log.INFO)
+
+	routes.RegisterRoutes(server.App)
 
 	// Start server
 	go func() {
-		if err := server.App.echo.Start(":8653"); err != nil && err != http.ErrServerClosed {
-			server.App.echo.Logger.Fatal("shutting down the server")
+		if err := server.App.Echo.Start(":8653"); err != nil && err != http.ErrServerClosed {
+			server.App.Echo.Logger.Fatal("shutting down the server")
 		}
 	}()
 
@@ -37,7 +40,7 @@ func (server *ApplicationServer) Serve() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := server.App.echo.Shutdown(ctx); err != nil {
-		server.App.echo.Logger.Fatal(err)
+	if err := server.App.Echo.Shutdown(ctx); err != nil {
+		server.App.Echo.Logger.Fatal(err)
 	}
 }
