@@ -28,16 +28,16 @@ func (service UrlService) CreateShortUrl(userContext echo.Context) error {
 		return userContext.JSON(http.StatusBadRequest, errs)
 	}
 
-	var hashUrl string
+	short := helpers.GenerateShortUrl(request.OriginalUrl)
 	now := time.Now()
 	expirationDate := now.AddDate(expirySpan, 0, 0)
 	_, err = service.Db.Exec("INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?);",
-		hashUrl, request.OriginalUrl, request.DomainName, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
+		short, request.OriginalUrl, request.DomainName, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
 
 	if err != nil {
 		return userContext.JSON(http.StatusInternalServerError, err)
 	}
-	return userContext.JSON(http.StatusOK, models.CreateUrlResponse{ShortUrl: hashUrl})
+	return userContext.JSON(http.StatusOK, models.CreateUrlResponse{ShortUrl: short})
 }
 
 func validateUrlRequest(request models.CreateUrlRequest) []error {
