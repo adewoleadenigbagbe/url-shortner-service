@@ -31,7 +31,7 @@ func (service UrlService) CreateShortUrl(userContext echo.Context) error {
 	short := helpers.GenerateShortUrl(request.OriginalUrl)
 	now := time.Now()
 	expirationDate := now.AddDate(expirySpan, 0, 0)
-	_, err = service.Db.Exec("INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?);",
+	_, err = service.Db.Exec("INSERT INTO shortlinks VALUES(?,?,?,?,?,?,?,?,?,?);",
 		short, request.OriginalUrl, request.DomainName, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
 
 	if err != nil {

@@ -1,5 +1,6 @@
 BEGIN;
 DROP TABLE users;
-DROP TABLE urls;
+DROP TABLE shortlinks;
+DROP TABLE unusedshortlinks;
 DROP TABLE userkeys;
 COMMIT;

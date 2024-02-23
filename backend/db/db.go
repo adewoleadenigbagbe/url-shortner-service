@@ -89,12 +89,12 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 
 	switch cmdType {
 	case Up:
-		query, err = getFileContent(files, path, "createtable.sql")
+		query, err = getFileContent(files, path, "create_table.sql")
 		if err != nil {
 			return err
 		}
 	case Down:
-		query, err = getFileContent(files, path, "droptable.sql")
+		query, err = getFileContent(files, path, "drop_table.sql")
 		if err != nil {
 			return err
 		}

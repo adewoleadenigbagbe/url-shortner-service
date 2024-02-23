@@ -12,3 +12,7 @@ type CreateUrlRequest struct {
 type CreateUrlResponse struct {
 	ShortUrl string `json:"url"`
 }
+
+type DeleteUrlRequest struct {
+	ShortUrl string `json:"url"`
+}
