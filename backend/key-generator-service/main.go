@@ -1,22 +1,25 @@
 package main
 
 import (
-	"context"
-	"time"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/key-generator-service/keyservice"
 )
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	//ctx := context.WithValue(context.Background(), "sig", quit)
 
 	kg := keyservice.NewKeyGenerator()
-	go func() {
-		kg.Run(ctx)
-	}()
+	go func(c chan os.Signal) {
+		fmt.Println("Starting the key generation service..")
+		kg.Run(c)
+	}(quit)
 
-	// signal.Notify(kg.done, os.Interrupt, syscall.SIGTERM)
-	// <-kg.done
-	// fmt.Println("Exiting key generator service ....")
+	<-quit
+	fmt.Println("Exiting the main")
 }

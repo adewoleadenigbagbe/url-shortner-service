@@ -18,12 +18,13 @@ func (service UrlService) LoginUser(urlContext echo.Context) error {
 	}
 
 	if len(request.ShortUrl) == 0 {
-		return urlContext.JSON(http.StatusBadRequest, errors.New("short links is invalid"))
+		return urlContext.JSON(http.StatusBadRequest, errors.New("shortlink is invalid"))
 	}
 
 	var short string
-	query := "SELECT OriginalUrl FROM shortlinks WHERE Hash=? AND IsDeprecated=?"
-	row := service.Db.QueryRow(query, request.ShortUrl, false)
+	query := `SELECT shortlinks.OriginalUrl, domains.Name FROM shortlinks JOIN domains ON shortlinks.DomainId = domains.Id 
+	 WHERE shortlinks.Hash=? AND shortlinks.IsDeprecated=? AND domains.IsDeprecated=?`
+	row := service.Db.QueryRow(query, request.ShortUrl, false, false)
 	if err = row.Scan(&short); errors.Is(err, sql.ErrNoRows) {
 		return urlContext.JSON(http.StatusNotFound, err.Error())
 	}

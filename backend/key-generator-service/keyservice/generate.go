@@ -1,10 +1,10 @@
 package keyservice
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
@@ -22,11 +22,12 @@ type KeyGenerator struct {
 	done          chan bool
 }
 
-func (kg *KeyGenerator) Run(ctx context.Context) {
+func (kg *KeyGenerator) Run(done chan os.Signal) {
 	for {
 		select {
-		case <-ctx.Done():
+		case <-done:
 			kg.scheduleTimer.Stop()
+			fmt.Println("Exiting key generator service ....")
 			return
 		case t := <-kg.scheduleTimer.C:
 			fmt.Println("Tick at ....", t)
