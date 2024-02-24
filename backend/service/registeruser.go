@@ -40,7 +40,7 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	//save user
 	_, err = tx.Exec("INSERT INTO users VALUES(?,?,?,?,?,?);", userid, request.UserName, request.Email, usercreatedOn, usercreatedOn, usercreatedOn)
 	if err != nil {
-		return userContext.JSON(http.StatusBadRequest, err.Error())
+		return userContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	//save keys

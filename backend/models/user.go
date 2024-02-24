@@ -20,3 +20,7 @@ type SignInUserResponse struct {
 	ApiKey string `json:"apikey"`
 	Token  string `json:"access_token"`
 }
+
+type GetShortRequest struct {
+	ShortUrl string `json:"shorturl"`
+}

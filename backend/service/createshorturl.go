@@ -15,17 +15,17 @@ const (
 	expirySpan = 1
 )
 
-func (service UrlService) CreateShortUrl(userContext echo.Context) error {
+func (service UrlService) CreateShortUrl(urlContext echo.Context) error {
 	var err error
 	request := new(models.CreateUrlRequest)
-	err = userContext.Bind(request)
+	err = urlContext.Bind(request)
 	if err != nil {
-		return userContext.JSON(http.StatusBadRequest, err.Error())
+		return urlContext.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	errs := validateUrlRequest(*request)
 	if len(errs) > 0 {
-		return userContext.JSON(http.StatusBadRequest, errs)
+		return urlContext.JSON(http.StatusBadRequest, errs)
 	}
 
 	short := helpers.GenerateShortUrl(request.OriginalUrl)
@@ -35,9 +35,9 @@ func (service UrlService) CreateShortUrl(userContext echo.Context) error {
 		short, request.OriginalUrl, request.DomainName, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
 
 	if err != nil {
-		return userContext.JSON(http.StatusInternalServerError, err)
+		return urlContext.JSON(http.StatusInternalServerError, err)
 	}
-	return userContext.JSON(http.StatusOK, models.CreateUrlResponse{ShortUrl: short})
+	return urlContext.JSON(http.StatusCreated, models.CreateUrlResponse{ShortUrl: short})
 }
 
 func validateUrlRequest(request models.CreateUrlRequest) []error {
