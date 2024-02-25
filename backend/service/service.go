@@ -9,3 +9,7 @@ type AuthService struct {
 type UrlService struct {
 	Db *sql.DB
 }
+
+type DomainService struct {
+	Db *sql.DB
+}

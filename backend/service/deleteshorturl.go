@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (service UrlService) DeletehortUrl(urlContext echo.Context) error {
+func (service UrlService) DeleteShortUrl(urlContext echo.Context) error {
 	var err error
 	request := new(models.DeleteUrlRequest)
 	err = urlContext.Bind(request)
