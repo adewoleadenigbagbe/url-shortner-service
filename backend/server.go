@@ -25,8 +25,13 @@ func (server *ApplicationServer) Serve() {
 		log.Fatal("Error loading .env file")
 	}
 
+	//set echo log
 	server.BaseApp.Echo.Logger.SetLevel(log.INFO)
 
+	// pass the db context
+	server.BaseApp.Echo.Use(server.AppMiddleWare.SetDbContext)
+
+	//Register Routes
 	routes.RegisterRoutes(server.BaseApp, server.AppMiddleWare)
 
 	// Start server
