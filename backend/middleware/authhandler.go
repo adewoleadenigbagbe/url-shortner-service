@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func AuthorizeUser(next echo.HandlerFunc) echo.HandlerFunc {
+func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		var err error
 		id, err := jwtauth.ValidateJWT(context)

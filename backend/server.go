@@ -8,13 +8,15 @@ import (
 	"time"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/core"
+	middlewares "github.com/adewoleadenigbagbe/url-shortner-service/middleware"
 	"github.com/adewoleadenigbagbe/url-shortner-service/routes"
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 )
 
 type ApplicationServer struct {
-	App *core.BaseApp
+	BaseApp       *core.BaseApp
+	AppMiddleWare *middlewares.AppMiddleware
 }
 
 func (server *ApplicationServer) Serve() {
@@ -23,14 +25,14 @@ func (server *ApplicationServer) Serve() {
 		log.Fatal("Error loading .env file")
 	}
 
-	server.App.Echo.Logger.SetLevel(log.INFO)
+	server.BaseApp.Echo.Logger.SetLevel(log.INFO)
 
-	routes.RegisterRoutes(server.App)
+	routes.RegisterRoutes(server.BaseApp, server.AppMiddleWare)
 
 	// Start server
 	go func() {
-		if err := server.App.Echo.Start(":8653"); err != nil && err != http.ErrServerClosed {
-			server.App.Echo.Logger.Fatal("shutting down the server")
+		if err := server.BaseApp.Echo.Start(":8653"); err != nil && err != http.ErrServerClosed {
+			server.BaseApp.Echo.Logger.Fatal("shutting down the server")
 		}
 	}()
 
@@ -40,7 +42,7 @@ func (server *ApplicationServer) Serve() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := server.App.Echo.Shutdown(ctx); err != nil {
-		server.App.Echo.Logger.Fatal(err)
+	if err := server.BaseApp.Echo.Shutdown(ctx); err != nil {
+		server.BaseApp.Echo.Logger.Fatal(err)
 	}
 }

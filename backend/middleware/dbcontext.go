@@ -2,8 +2,8 @@ package middlewares
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/adewoleadenigbagbe/url-shortner-service/core"
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,12 +14,12 @@ const (
 )
 
 type AppMiddleware struct {
-	app *core.BaseApp
+	Db *sql.DB
 }
 
 func (appMiddleware *AppMiddleware) SetDbContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx := context.WithValue(c.Request().Context(), Db, appMiddleware.app.Db)
+		ctx := context.WithValue(c.Request().Context(), Db, appMiddleware.Db)
 		c.SetRequest(c.Request().WithContext(ctx))
 		return next(c)
 	}

@@ -15,7 +15,7 @@ type BaseApp struct {
 	UrlService  services.UrlService
 }
 
-func ConfigureApp() (*BaseApp, error) {
+func ConfigureAppDependencies() (*BaseApp, error) {
 	db, err := database.ConnectToSQLite()
 	if err != nil {
 		return nil, err
