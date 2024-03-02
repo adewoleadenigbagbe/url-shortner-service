@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users(
    ModifiedOn DATETIME NOT NULL,
    LastLogin DATETIME NOT NULL
 );
-CREATE UNIQUE INDEX idx_users_email on users (Email);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email on users (Email);
 
 CREATE TABLE IF NOT EXISTS domains(
    Id CHAR(36) NOT NULL PRIMARY KEY,
@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS domains(
    IsDeprecated BOOLEAN NOT NULL,
    CreatedById CHAR(36) NOT NULL
 );
-CREATE UNIQUE INDEX idx_domains_name on domains (Name);
-CREATE INDEX idx_domains_createdById on domains (CreatedById);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_domains_name on domains (Name);
+CREATE INDEX IF NOT EXISTS idx_domains_createdById on domains (CreatedById);
 
 
 CREATE TABLE IF NOT EXISTS shortlinks(
@@ -33,9 +33,9 @@ CREATE TABLE IF NOT EXISTS shortlinks(
    IsDeprecated BOOLEAN NOT NULL,
    UserId CHAR(36) NOT NULL
 );
-CREATE UNIQUE INDEX idx_shortlinks_original_url ON shortlinks (OriginalUrl);
-CREATE INDEX idx_shortlinks_userId ON shortlinks (UserId);
-CREATE INDEX idx_shortlinks_domainId ON shortlinks (DomainId);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_shortlinks_original_url ON shortlinks (OriginalUrl);
+CREATE INDEX IF NOT EXISTS idx_shortlinks_userId ON shortlinks (UserId);
+CREATE INDEX IF NOT EXISTS idx_shortlinks_domainId ON shortlinks (DomainId);
 
 
 CREATE TABLE IF NOT EXISTS unusedshortlinks(
@@ -55,6 +55,6 @@ CREATE TABLE IF NOT EXISTS userkeys(
    UserId CHAR(36) NOT NULL,
    IsActive BOOLEAN NOT NULL
 );
-CREATE INDEX idx_userkeys_userId ON userkeys (UserId);
+CREATE INDEX IF NOT EXISTS idx_userkeys_userId ON userkeys (UserId);
 
 COMMIT;

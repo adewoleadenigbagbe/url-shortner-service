@@ -16,9 +16,7 @@ func encodeToString(text string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	//taking just 20 characters from the hash, as the first 15 are mostly duplicate from the hash
-	return base64.StdEncoding.EncodeToString(hash)[15:35]
+	return base64.StdEncoding.EncodeToString(hash)
 }
 
 func GenerateApiKey(text string) string {

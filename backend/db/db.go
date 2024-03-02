@@ -37,7 +37,6 @@ func ConnectToSQLite() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
 
 	return db, nil
 }
@@ -49,8 +48,8 @@ func createDatabaseIfExist() error {
 		file *os.File
 	)
 
-	exist := doesFileExist()
-	if exist {
+	fileExist := doesFileExist()
+	if fileExist {
 		return nil
 	}
 
@@ -65,10 +64,10 @@ func createDatabaseIfExist() error {
 
 // function to check if file exists
 func doesFileExist() bool {
-	_, error := os.Stat(dbFile)
+	_, err := os.Stat(dbFile)
 
 	// check if error is "file not exists"
-	return os.IsNotExist(error)
+	return !os.IsNotExist(err)
 }
 
 func executeTableCmd(db *sql.DB, cmdType CommandType) error {
@@ -104,6 +103,7 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 
 	//TODO:Change this to ExecContext later
 	_, err = db.Exec(query)
+
 	if err != nil {
 		return err
 	}

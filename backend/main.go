@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/adewoleadenigbagbe/url-shortner-service/core"
 	middlewares "github.com/adewoleadenigbagbe/url-shortner-service/middleware"
+	"github.com/adewoleadenigbagbe/url-shortner-service/server"
 	"github.com/labstack/gommon/log"
 )
 
@@ -12,7 +13,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := ApplicationServer{
+	server := server.ApplicationServer{
 		BaseApp: app,
 		AppMiddleWare: &middlewares.AppMiddleware{
 			Db: app.Db,

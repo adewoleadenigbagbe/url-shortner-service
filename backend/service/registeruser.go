@@ -10,6 +10,7 @@ import (
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
 )
 
 const (
@@ -28,18 +29,25 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	//client validation
 	errs := validateUser(*request)
 	if len(errs) > 0 {
-		return userContext.JSON(http.StatusBadRequest, errs)
+		valErrors := lo.Map(errs, func(er error, index int) string {
+			return er.Error()
+		})
+		return userContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
 	//generate api key
 	userid := sequentialguid.NewSequentialGuid().String()
 	usercreatedOn := time.Now()
 
-	tx, _ := service.Db.Begin()
+	tx, err := service.Db.Begin()
+	if err != nil {
+		return userContext.JSON(http.StatusInternalServerError, err.Error())
+	}
 
 	//save user
 	_, err = tx.Exec("INSERT INTO users VALUES(?,?,?,?,?,?);", userid, request.UserName, request.Email, usercreatedOn, usercreatedOn, usercreatedOn)
 	if err != nil {
+		tx.Rollback()
 		return userContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
@@ -49,15 +57,14 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	keyCreatedOn := time.Now()
 	expiryDate := keyCreatedOn.AddDate(expiryYear, 0, 0)
 
-	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
+	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
 	if err != nil {
 		tx.Rollback()
 		return userContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	tx.Commit()
-
-	return userContext.JSON(http.StatusOK, models.RegisterUserResponse{Id: userid, ApiKey: userKeyId})
+	return userContext.JSON(http.StatusOK, models.RegisterUserResponse{Id: userid, ApiKey: apikey})
 }
 
 func validateUser(user models.RegisterUserRequest) []error {
