@@ -11,6 +11,7 @@ import (
 	middlewares "github.com/adewoleadenigbagbe/url-shortner-service/middleware"
 	"github.com/adewoleadenigbagbe/url-shortner-service/routes"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 )
 
@@ -27,6 +28,8 @@ func (server *ApplicationServer) Serve() {
 
 	//set echo log
 	server.BaseApp.Echo.Logger.SetLevel(log.INFO)
+
+	server.BaseApp.Echo.Use(middleware.CORS())
 
 	// pass the db context
 	server.BaseApp.Echo.Use(server.AppMiddleWare.SetDbContext)

@@ -1,2 +1,4 @@
 # Database files
 *.db
+*node_modules
+.vscode/*

@@ -2,7 +2,9 @@ package middlewares
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"time"
 
 	jwtauth "github.com/adewoleadenigbagbe/url-shortner-service/helpers/auth"
 	"github.com/labstack/echo/v4"
@@ -30,5 +32,13 @@ func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.Ha
 }
 
 func isCurrentUser(db *sql.DB, id, key string) bool {
-	return false
+	query := `SELECT COUNT(1) FROM users JOIN userkeys on users.Id = userkeys.UserId 
+	where users.Id ?= AND userkeys.ApiKey =? AND userkeys.IsActive =? AND userkeys.ExpirationDate >?`
+	var count int64
+	err := db.QueryRow(query, id, key, true, time.Now()).Scan(&count)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return count == 1
 }
