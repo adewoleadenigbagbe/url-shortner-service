@@ -14,7 +14,7 @@ import (
 )
 
 // generate JWT token
-func GenerateJWT(user models.SigInUserRequest) (string, error) {
+func GenerateJWT(user models.SignInUserRequest) (string, error) {
 	tokenTTL, _ := strconv.Atoi(os.Getenv("TOKEN_TTL"))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    user.Id,

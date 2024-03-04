@@ -29,6 +29,7 @@ func (server *ApplicationServer) Serve() {
 	//set echo log
 	server.BaseApp.Echo.Logger.SetLevel(log.INFO)
 
+	//cors middleware
 	server.BaseApp.Echo.Use(middleware.CORS())
 
 	// pass the db context

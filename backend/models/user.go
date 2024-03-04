@@ -10,9 +10,9 @@ type RegisterUserResponse struct {
 	ApiKey string `json:"apikey"`
 }
 
-type SigInUserRequest struct {
-	Id    string `json:"id"`
+type SignInUserRequest struct {
 	Email string `json:"email"`
+	Id    string
 }
 
 type SignInUserResponse struct {

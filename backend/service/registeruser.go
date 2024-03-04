@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"time"
@@ -18,12 +19,13 @@ const (
 	emailRegex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
 )
 
-func (service AuthService) RegisterUser(userContext echo.Context) error {
+func (service AuthService) RegisterUser(authContext echo.Context) error {
 	var err error
 	request := new(models.RegisterUserRequest)
-	err = userContext.Bind(request)
+	err = authContext.Bind(request)
+	fmt.Println(request)
 	if err != nil {
-		return userContext.JSON(http.StatusBadRequest, err.Error())
+		return authContext.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	//client validation
@@ -32,7 +34,7 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 		valErrors := lo.Map(errs, func(er error, index int) string {
 			return er.Error()
 		})
-		return userContext.JSON(http.StatusBadRequest, valErrors)
+		return authContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
 	//generate api key
@@ -41,14 +43,14 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 
 	tx, err := service.Db.Begin()
 	if err != nil {
-		return userContext.JSON(http.StatusInternalServerError, err.Error())
+		return authContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	//save user
 	_, err = tx.Exec("INSERT INTO users VALUES(?,?,?,?,?,?);", userid, request.UserName, request.Email, usercreatedOn, usercreatedOn, usercreatedOn)
 	if err != nil {
 		tx.Rollback()
-		return userContext.JSON(http.StatusInternalServerError, err.Error())
+		return authContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	//save keys
@@ -60,11 +62,11 @@ func (service AuthService) RegisterUser(userContext echo.Context) error {
 	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
 	if err != nil {
 		tx.Rollback()
-		return userContext.JSON(http.StatusInternalServerError, err.Error())
+		return authContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	tx.Commit()
-	return userContext.JSON(http.StatusOK, models.RegisterUserResponse{Id: userid, ApiKey: apikey})
+	return authContext.JSON(http.StatusOK, models.RegisterUserResponse{Id: userid, ApiKey: apikey})
 }
 
 func validateUser(user models.RegisterUserRequest) []error {
