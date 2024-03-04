@@ -1,8 +1,10 @@
 <script setup>
+import { useRouter } from 'vue-router';
 import baseUrl from '../../baseconfig';
 
 const username = defineModel('username')
 const email = defineModel('email')
+const router = useRouter()
 
 async function registerUser() {
     const requestOptions = {
@@ -19,8 +21,19 @@ async function registerUser() {
     const resource = "auth/register"
     let url = `${baseUrl}${resource}`
     const response = await fetch(url, requestOptions)
+    if(response.ok && response.status === 200)
+    {
+        const data = await response.json()
+        localStorage.setItem("apikey", data["apikey"])
+        router.push({ name: 'login'})
+    }
+
     console.log(response)
 }
+
+// function displayGrowlerError(){
+//     console.log("hi")
+// }
 </script>
 
 <template>
@@ -37,7 +50,7 @@ async function registerUser() {
                 <input type="email" class="form-control" id="email" v-model="email" placeholder="Enter email" required>
             </div>
             <div class="btn-container">
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary">Register</button>
             </div>
         </form>
     </div>

@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 	"time"
@@ -23,7 +22,6 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	var err error
 	request := new(models.RegisterUserRequest)
 	err = authContext.Bind(request)
-	fmt.Println(request)
 	if err != nil {
 		return authContext.JSON(http.StatusBadRequest, err.Error())
 	}
