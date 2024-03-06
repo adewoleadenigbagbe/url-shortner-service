@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	characterLimit = 6
+	characterLimit = 8
 	expirySpan     = 1
 )
 

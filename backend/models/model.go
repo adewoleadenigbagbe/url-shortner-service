@@ -1,16 +1,19 @@
 package models
 
-import "database/sql"
+import (
+	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
+)
 
 type CreateUrlRequest struct {
-	UserId      string         `json:"userId"`
-	OriginalUrl string         `json:"original_url"`
-	DomainName  string         `json:"domain"`
-	CustomAlias sql.NullString `json:"alias"`
+	UserId      string                   `json:"userId"`
+	OriginalUrl string                   `json:"originalurl"`
+	DomainName  string                   `json:"domain"`
+	CustomAlias helpers.Nullable[string] `json:"alias"`
 }
 
 type CreateUrlResponse struct {
-	ShortUrl string `json:"url"`
+	ShortUrl string `json:"shortlink"`
+	Domain   string `json:"domain"`
 }
 
 type DeleteUrlRequest struct {

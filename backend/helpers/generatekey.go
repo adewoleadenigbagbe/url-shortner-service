@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"log"
 	"math/rand"
@@ -25,11 +26,13 @@ func GenerateApiKey(text string) string {
 	return key[15:35]
 }
 
-func GenerateShortUrl(text string) string {
-	short := encodeToString(text)
+func GenerateShortLink(text string) string {
+	algorithm := sha256.New()
+	algorithm.Write([]byte(text))
+	hash := algorithm.Sum(nil)
+	short := base64.StdEncoding.EncodeToString(hash)
 
-	//taking just 6 characters from the hash, as the first 15 are mostly duplicate from the hash
-	return short[15:21]
+	return short[:8]
 }
 
 func RandStringBytesRmndr(n int) string {

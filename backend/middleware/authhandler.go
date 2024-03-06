@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -18,13 +17,13 @@ func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.Ha
 			return context.JSON(http.StatusUnauthorized, "Authentication required")
 		}
 
-		apikey := context.Request().Header["X-Api-Key"][0]
+		apikey := context.Request().Header["X-Api-Key"]
 		if len(apikey) == 0 {
-			return context.JSON(http.StatusBadRequest, "user ApiKey Missing in the header")
+			return context.JSON(http.StatusBadRequest, "User ApiKey missing in the header")
 		}
 
-		db := context.Request().Context().Value("db").(*sql.DB)
-		if !isCurrentUser(db, id, apikey) {
+		db := context.Request().Context().Value(Db).(*sql.DB)
+		if !isCurrentUser(db, id, apikey[0]) {
 			return context.JSON(http.StatusUnauthorized, "invalid api key")
 		}
 		return next(context)
@@ -33,11 +32,10 @@ func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.Ha
 
 func isCurrentUser(db *sql.DB, id, key string) bool {
 	query := `SELECT COUNT(1) FROM users JOIN userkeys on users.Id = userkeys.UserId 
-	where users.Id ?= AND userkeys.ApiKey =? AND userkeys.IsActive =? AND userkeys.ExpirationDate >?`
+	WHERE users.Id =? AND userkeys.ApiKey =? AND userkeys.IsActive =? AND userkeys.ExpirationDate >?`
 	var count int64
 	err := db.QueryRow(query, id, key, true, time.Now()).Scan(&count)
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	return count == 1
