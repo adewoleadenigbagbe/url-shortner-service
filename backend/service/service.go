@@ -1,9 +1,14 @@
 package services
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/redis/go-redis/v9"
+)
 
 type AuthService struct {
-	Db *sql.DB
+	Db  *sql.DB
+	Rdb *redis.Client
 }
 
 type UrlService struct {

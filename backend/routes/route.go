@@ -12,7 +12,7 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router := app.Echo
 	router.POST("/api/v1/auth/register", app.AuthService.RegisterUser)
 	router.POST("/api/v1/auth/sign-in", app.AuthService.LoginUser)
-	//router.POST("/api/v1/url", app.UrlService.CreateShortUrl)
+	router.POST("/api/v1/auth/sign-out", app.AuthService.LogOut)
 	router.POST("/api/v1/url", app.UrlService.CreateShortUrl, middleware.AuthorizeUser)
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
