@@ -16,7 +16,8 @@ func main() {
 	server := server.ApplicationServer{
 		BaseApp: app,
 		AppMiddleWare: &middlewares.AppMiddleware{
-			Db: app.Db,
+			Db:  app.Db,
+			Rdb: app.Rdb,
 		},
 	}
 
