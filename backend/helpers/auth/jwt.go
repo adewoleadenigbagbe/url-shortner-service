@@ -41,9 +41,9 @@ func ValidateJWT(context echo.Context) (string, error) {
 	return "", errors.New("invalid token provided")
 }
 
-// // check token validity
+// check token validity
 func getToken(context echo.Context) (*jwt.Token, error) {
-	tokenString := getTokenFromRequest(context)
+	tokenString := GetTokenFromRequest(context)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -54,8 +54,8 @@ func getToken(context echo.Context) (*jwt.Token, error) {
 	return token, err
 }
 
-// // extract token from request Authorization header
-func getTokenFromRequest(context echo.Context) string {
+// extract token from request Authorization header
+func GetTokenFromRequest(context echo.Context) string {
 	bearerToken := context.Request().Header.Get("Authorization")
 	splitToken := strings.Split(bearerToken, " ")
 	if len(splitToken) == 2 {

@@ -24,3 +24,7 @@ type SignInUserResponse struct {
 type GetShortRequest struct {
 	ShortUrl string `json:"shorturl"`
 }
+
+type SignOutUserRequest struct {
+	UserId string `json:"userId"`
+}

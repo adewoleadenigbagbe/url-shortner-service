@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -36,15 +35,13 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 		DB:       0, // use default DB
 	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	ping, err := redisClient.Ping(ctx).Result()
+	_, err = redisClient.Ping(ctx).Result()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println(ping)
 
 	app := &BaseApp{
 		Echo: echo.New(),

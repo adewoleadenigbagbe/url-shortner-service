@@ -2,11 +2,13 @@ package middlewares
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
 	jwtauth "github.com/adewoleadenigbagbe/url-shortner-service/helpers/auth"
 	"github.com/labstack/echo/v4"
+	"github.com/redis/go-redis/v9"
 )
 
 func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.HandlerFunc {
@@ -17,13 +19,17 @@ func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.Ha
 			return context.JSON(http.StatusUnauthorized, "Authentication required")
 		}
 
-		apikey := context.Request().Header["X-Api-Key"]
+		tokenExist := checkForBlackListedTokens(context, appMiddleware.Rdb, id)
+		if tokenExist {
+			return context.JSON(http.StatusBadRequest, "Invalid Authourization Token")
+		}
+
+		apikey := context.Request().Header.Get("X-Api-Key")
 		if len(apikey) == 0 {
 			return context.JSON(http.StatusBadRequest, "User ApiKey missing in the header")
 		}
 
-		db := context.Request().Context().Value(Db).(*sql.DB)
-		if !isCurrentUser(db, id, apikey[0]) {
+		if !isCurrentUser(appMiddleware.Db, id, apikey) {
 			return context.JSON(http.StatusUnauthorized, "invalid api key")
 		}
 		return next(context)
@@ -39,4 +45,13 @@ func isCurrentUser(db *sql.DB, id, key string) bool {
 		return false
 	}
 	return count == 1
+}
+
+func checkForBlackListedTokens(context echo.Context, redisClient *redis.Client, id string) bool {
+	token := jwtauth.GetTokenFromRequest(context)
+	res, err := redisClient.Get(context.Request().Context(), id).Result()
+	if err != redis.Nil {
+		fmt.Println(err)
+	}
+	return res == token
 }

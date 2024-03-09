@@ -32,9 +32,6 @@ func (server *ApplicationServer) Serve() {
 	//cors middleware
 	server.BaseApp.Echo.Use(middleware.CORS())
 
-	// pass the db context
-	server.BaseApp.Echo.Use(server.AppMiddleWare.SetDbContext)
-
 	//Register Routes
 	routes.RegisterRoutes(server.BaseApp, server.AppMiddleWare)
 
