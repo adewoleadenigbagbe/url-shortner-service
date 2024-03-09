@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
@@ -14,6 +16,8 @@ import (
 const (
 	characterLimit = 8
 	expirySpan     = 1
+	dbFilePath     = "urlshortnerDB.db"
+	RootFolderPath = "backend"
 )
 
 type KeyGenerator struct {
@@ -50,7 +54,18 @@ func (kg *KeyGenerator) saveKey(key string) error {
 }
 
 func NewKeyGenerator() *KeyGenerator {
-	db, err := database.ConnectToSQLite()
+	currentWorkingDirectory, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	index := strings.Index(currentWorkingDirectory, RootFolderPath)
+	if index == -1 {
+		log.Fatal("App Root Folder Path not found")
+	}
+
+	filePath := filepath.Join(currentWorkingDirectory[:index], RootFolderPath, dbFilePath)
+	db, err := database.ConnectToSQLite(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}

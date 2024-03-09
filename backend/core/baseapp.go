@@ -13,6 +13,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	dbFile = "urlshortnerDB.db"
+)
+
 type BaseApp struct {
 	Echo        *echo.Echo
 	Db          *sql.DB
@@ -23,7 +27,7 @@ type BaseApp struct {
 
 func ConfigureAppDependencies() (*BaseApp, error) {
 	//connect to sqllite
-	db, err := database.ConnectToSQLite()
+	db, err := database.ConnectToSQLite(dbFile)
 	if err != nil {
 		return nil, err
 	}
