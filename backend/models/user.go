@@ -21,9 +21,6 @@ type SignInUserResponse struct {
 	Token  string `json:"access_token"`
 }
 
-type GetShortRequest struct {
-	ShortUrl string `json:"shorturl"`
-}
 
 type SignOutUserRequest struct {
 	UserId string `json:"userId"`

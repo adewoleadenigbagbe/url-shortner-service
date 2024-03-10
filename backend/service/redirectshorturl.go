@@ -9,9 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (service UrlService) LoginUser(urlContext echo.Context) error {
+func (service UrlService) RedirectShort(urlContext echo.Context) error {
 	var err error
-	request := new(models.GetShortRequest)
+	request := new(models.RedirectShortRequest)
 	err = urlContext.Bind(request)
 	if err != nil {
 		return urlContext.JSON(http.StatusBadRequest, err.Error())

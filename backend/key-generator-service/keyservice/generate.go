@@ -27,6 +27,7 @@ type KeyGenerator struct {
 }
 
 func (kg *KeyGenerator) Run(done chan os.Signal) {
+	fmt.Println("Starting the key generation service..")
 	for {
 		select {
 		case <-done:

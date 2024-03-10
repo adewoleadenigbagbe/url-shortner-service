@@ -16,7 +16,6 @@ func main() {
 
 	kg := keyservice.NewKeyGenerator()
 	go func(c chan os.Signal) {
-		fmt.Println("Starting the key generation service..")
 		kg.Run(c)
 	}(quit)
 
