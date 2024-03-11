@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"fmt"
 	"math"
 	"net/http"
@@ -18,7 +19,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 		Hash           string
 		OriginalUrl    string
 		DomainId       string
-		Alias          string
+		Alias          sql.NullString
 		CreatedOn      time.Time
 		ExpirationDate time.Time
 	}
@@ -30,15 +31,17 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	}
 
 	setDefaultRequest(request)
-
 	sortAndOrder := request.SortBy + " " + request.Order
-	query := `SELECT Hash,OriginalUrl,DomainId, Alias, CreatedOn, ExpirationDate 
-	FROM shortlinks 
-	WHERE userId =? AND IsDepecated=?
-	ORDER BY ?=
-	LIMIT =? OFFSET =?`
+	offset := (request.Page - 1) * request.PageLength
 
-	rows, err := urlService.Db.Query(query, request.UserId, false, sortAndOrder, request.PageLength, request.Page)
+	query := fmt.Sprintf(`
+	SELECT Hash,OriginalUrl,DomainId, Alias, CreatedOn, 
+	ExpirationDate FROM shortlinks 
+	WHERE UserId = %q AND IsDeprecated = %t 
+	ORDER BY %s LIMIT %d OFFSET %d`,
+		request.UserId, false, sortAndOrder, request.PageLength, offset)
+
+	rows, err := urlService.Db.Query(query, request.UserId, false, sortAndOrder, request.PageLength, offset)
 	if err != nil {
 		return urlContext.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -47,15 +50,14 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	var shorts []shortDto
 	for rows.Next() {
 		var short shortDto
-		err = rows.Scan(&short)
+		err = rows.Scan(&short.Hash, &short.OriginalUrl, &short.DomainId, &short.Alias, &short.CreatedOn, &short.ExpirationDate)
 		if err != nil {
 			return urlContext.JSON(http.StatusInternalServerError, err.Error())
 		}
 		shorts = append(shorts, short)
 	}
-	fmt.Println(shorts)
 
-	query2 := `SELECT COUNT(1) FROM shortlinks WHERE userId =? AND IsDepecated=?`
+	query2 := `SELECT COUNT(1) FROM shortlinks WHERE userId =? AND IsDeprecated=?`
 	row := urlService.Db.QueryRow(query2, request.UserId, false)
 	if row.Err() != nil {
 		return urlContext.JSON(http.StatusInternalServerError, row.Err().Error())
@@ -103,7 +105,7 @@ func setDefaultRequest(request *models.GetShortRequest) {
 	}
 
 	if request.SortBy == "" {
-		request.SortBy = "expirationDate"
+		request.SortBy = "ExpirationDate"
 	}
 
 	if request.Order == "" {

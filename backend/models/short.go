@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
@@ -43,11 +44,11 @@ type GetShortResponse struct {
 }
 
 type GetShortData struct {
-	Short          string    `json:"short"`
-	OriginalUrl    string    `json:"originalUrl"`
-	Domain         string    `json:"domain"`
-	Alias          string    `json:"alias"`
-	CreatedOn      time.Time `json:"createdOn"`
-	ExpirationDate time.Time `json:"expiryDate"`
-	UserId         string    `json:"userId"`
+	Short          string                   `json:"short"`
+	OriginalUrl    string                   `json:"originalUrl"`
+	Domain         string                   `json:"domain"`
+	Alias          sql.NullString `json:"alias"`
+	CreatedOn      time.Time                `json:"createdOn"`
+	ExpirationDate time.Time                `json:"expiryDate"`
+	UserId         string                   `json:"userId"`
 }

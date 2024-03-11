@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -88,7 +87,6 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 	}
 
 	path := filepath.Join(currentWorkingDirectory[:index], TargetFolderPath, "db")
-	fmt.Println("newpath :", path)
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return err
