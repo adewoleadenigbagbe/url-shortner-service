@@ -72,13 +72,9 @@ func (n Nullable[T]) MarshalJSON() ([]byte, error) {
 }
 
 func convertToGenericType[T any](value interface{}) (T, error) {
-	switch v := value.(type) {
-	case []uint8, []uint16, []uint32, []uint64:
-		if reflect.TypeOf(v).ConvertibleTo(reflect.TypeOf((*T)(nil)).Elem()) {
-			return reflect.ValueOf(value).Convert(reflect.TypeOf((*T)(nil)).Elem()).Interface().(T), nil
-		}
+	if reflect.TypeOf(value).ConvertibleTo(reflect.TypeOf((*T)(nil)).Elem()) {
+		return reflect.ValueOf(value).Convert(reflect.TypeOf((*T)(nil)).Elem()).Interface().(T), nil
 	}
-
 	var zero T
 	return zero, ErrUnsupportedConversion
 }
