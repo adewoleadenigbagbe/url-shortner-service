@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -18,6 +19,7 @@ func GenerateJWT(user models.SignInUserRequest) (string, error) {
 	tokenTTL, _ := strconv.Atoi(os.Getenv("TOKEN_TTL"))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    user.Id,
+		"role":  user.Role,
 		"email": user.Email,
 		"exp":   time.Now().Add(time.Second * time.Duration(tokenTTL)).Unix(),
 		"iat":   time.Now().Unix(),
@@ -28,17 +30,34 @@ func GenerateJWT(user models.SignInUserRequest) (string, error) {
 	return token.SignedString(privateKey)
 }
 
-// validate JWT token
+// validate user JWT token
 func ValidateJWT(context echo.Context) (string, error) {
 	token, err := getToken(context)
 	if err != nil {
 		return "", err
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
+	role := uint(claims["role"].(float64))
+
+	if ok && token.Valid && role == uint(enums.EndUser) {
 		return claims["id"].(string), nil
 	}
 	return "", errors.New("invalid token provided")
+}
+
+// validate Admin JWT token
+func ValidateAdminRoleJWT(context echo.Context) error {
+	token, err := getToken(context)
+	if err != nil {
+		return err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	role := uint(claims["role"].(float64))
+
+	if ok && token.Valid && role == uint(enums.Admin) {
+		return nil
+	}
+	return errors.New("invalid token provided")
 }
 
 // check token validity

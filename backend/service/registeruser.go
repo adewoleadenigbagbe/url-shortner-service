@@ -1,12 +1,14 @@
 package services
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"regexp"
 	"time"
 
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
+	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
@@ -39,13 +41,26 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	userid := sequentialguid.NewSequentialGuid().String()
 	usercreatedOn := time.Now()
 
+	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.EndUser)
+	if errors.Is(row.Err(), sql.ErrNoRows) {
+		return authContext.JSON(http.StatusNotFound, errors.New("no role found"))
+	}
+	var roleId string
+	err = row.Scan(&roleId)
+	if err != nil {
+		return authContext.JSON(http.StatusInternalServerError, err.Error())
+	}
+
 	tx, err := service.Db.Begin()
 	if err != nil {
 		return authContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	//save user
-	_, err = tx.Exec("INSERT INTO users VALUES(?,?,?,?,?,?);", userid, request.UserName, request.Email, usercreatedOn, usercreatedOn, usercreatedOn)
+	_, err = tx.Exec(`INSERT INTO users VALUES(?,?,?,?,?,?,?,?);`,
+		userid, request.UserName, request.Email, usercreatedOn,
+		usercreatedOn, usercreatedOn, roleId, false)
+
 	if err != nil {
 		tx.Rollback()
 		return authContext.JSON(http.StatusInternalServerError, err.Error())

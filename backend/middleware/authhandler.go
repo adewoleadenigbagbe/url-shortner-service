@@ -36,6 +36,27 @@ func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.Ha
 	}
 }
 
+func (appMiddleware *AppMiddleware) AuthorizeAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(context echo.Context) error {
+		var err error
+		id, err := jwtauth.ValidateJWT(context)
+		if err != nil {
+			return context.JSON(http.StatusUnauthorized, "Authentication required")
+		}
+
+		tokenExist := checkForBlackListedTokens(context, appMiddleware.Rdb, id)
+		if tokenExist {
+			return context.JSON(http.StatusBadRequest, "Invalid Authourization Token")
+		}
+
+		err = jwtauth.ValidateAdminRoleJWT(context)
+		if err != nil {
+			return context.JSON(http.StatusForbidden, "You are not allowed to access this resource")
+		}
+		return next(context)
+	}
+}
+
 func isCurrentUser(db *sql.DB, id, key string) bool {
 	query := `SELECT COUNT(1) FROM users JOIN userkeys on users.Id = userkeys.UserId 
 	WHERE users.Id =? AND userkeys.ApiKey =? AND userkeys.IsActive =? AND userkeys.ExpirationDate >?`

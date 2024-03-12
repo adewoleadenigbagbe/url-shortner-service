@@ -18,11 +18,12 @@ const (
 )
 
 type BaseApp struct {
-	Echo        *echo.Echo
-	Db          *sql.DB
-	Rdb         *redis.Client
-	AuthService services.AuthService
-	UrlService  services.UrlService
+	Echo          *echo.Echo
+	Db            *sql.DB
+	Rdb           *redis.Client
+	AuthService   services.AuthService
+	UrlService    services.UrlService
+	DomainService services.DomainService
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
@@ -56,6 +57,9 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 			Rdb: redisClient,
 		},
 		UrlService: services.UrlService{
+			Db: db,
+		},
+		DomainService: services.DomainService{
 			Db: db,
 		},
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (service UrlService) DeleteDomainUrl(domainContext echo.Context) error {
+func (service DomainService) DeleteDomain(domainContext echo.Context) error {
 	var err error
 	request := new(models.DeleteDomainRequest)
 	err = domainContext.Bind(request)

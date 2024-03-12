@@ -1,12 +1,23 @@
 BEGIN;
+CREATE TABLE IF NOT EXISTS userRoles(
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   Role INTEGER NOT NULL,
+   CreatedOn DATETIME NOT NULL,
+   IsDeprecated BOOLEAN NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_userroles_role on userRoles (Role);
+
 CREATE TABLE IF NOT EXISTS users(
    Id CHAR(36) NOT NULL PRIMARY KEY,
    Name VARCHAR(255) NOT NULL,
    Email VARCHAR(50) NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
-   LastLogin DATETIME NOT NULL
+   LastLogin DATETIME NOT NULL,
+   RoleId CHAR(36) NOT NULL,
+   IsDeprecated BOOLEAN NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_users_roleId on users (RoleId);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email on users (Email);
 
 CREATE TABLE IF NOT EXISTS domains(
