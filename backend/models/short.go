@@ -9,13 +9,13 @@ import (
 type CreateUrlRequest struct {
 	UserId      string                   `json:"userId"`
 	OriginalUrl string                   `json:"originalurl"`
-	DomainName  string                   `json:"domain"`
+	DomainId    string                   `json:"domainId"`
 	CustomAlias helpers.Nullable[string] `json:"alias"`
 }
 
 type CreateUrlResponse struct {
 	ShortUrl string `json:"shortlink"`
-	Domain   string `json:"domain"`
+	DomainId string `json:"domainId"`
 }
 
 type DeleteUrlRequest struct {

@@ -14,7 +14,7 @@ import (
 func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		var err error
-		id, err := jwtauth.ValidateJWT(context)
+		id, err := jwtauth.ValidateUserJWT(context)
 		if err != nil {
 			return context.JSON(http.StatusUnauthorized, "Authentication required")
 		}
@@ -38,10 +38,9 @@ func (appMiddleware *AppMiddleware) AuthorizeUser(next echo.HandlerFunc) echo.Ha
 
 func (appMiddleware *AppMiddleware) AuthorizeAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(context echo.Context) error {
-		var err error
-		id, err := jwtauth.ValidateJWT(context)
+		id, err := jwtauth.ValidateAdminRoleJWT(context)
 		if err != nil {
-			return context.JSON(http.StatusUnauthorized, "Authentication required")
+			return context.JSON(http.StatusUnauthorized, "You are not allowed to access this resource")
 		}
 
 		tokenExist := checkForBlackListedTokens(context, appMiddleware.Rdb, id)
@@ -49,10 +48,6 @@ func (appMiddleware *AppMiddleware) AuthorizeAdmin(next echo.HandlerFunc) echo.H
 			return context.JSON(http.StatusBadRequest, "Invalid Authourization Token")
 		}
 
-		err = jwtauth.ValidateAdminRoleJWT(context)
-		if err != nil {
-			return context.JSON(http.StatusForbidden, "You are not allowed to access this resource")
-		}
 		return next(context)
 	}
 }

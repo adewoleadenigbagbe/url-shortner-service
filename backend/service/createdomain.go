@@ -8,6 +8,11 @@ import (
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
+)
+
+const (
+	DuplicateName = "Duplicate... Name already exist"
 )
 
 func (service DomainService) CreateDomain(domainContext echo.Context) error {
@@ -20,7 +25,20 @@ func (service DomainService) CreateDomain(domainContext echo.Context) error {
 
 	errs := validateDomainRequest(*request)
 	if len(errs) > 0 {
-		return domainContext.JSON(http.StatusBadRequest, errs)
+		valErrors := lo.Map(errs, func(er error, index int) string {
+			return er.Error()
+		})
+		return domainContext.JSON(http.StatusBadRequest, valErrors)
+	}
+
+	var count int64
+	err = service.Db.QueryRow("SELECT COUNT(1) FROM domains WHERE Name =?", request.Name).Scan(&count)
+	if err != nil {
+		return domainContext.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	if count > 0 {
+		return domainContext.JSON(http.StatusBadRequest, DuplicateName)
 	}
 
 	now := time.Now()
@@ -31,7 +49,7 @@ func (service DomainService) CreateDomain(domainContext echo.Context) error {
 	if err != nil {
 		return domainContext.JSON(http.StatusInternalServerError, err)
 	}
-	return domainContext.JSON(http.StatusCreated, models.CreateUrlResponse{ShortUrl: domainId})
+	return domainContext.JSON(http.StatusCreated, models.CreateDomainResponse{DomainId: domainId, Name: request.Name})
 }
 
 func validateDomainRequest(request models.CreateDomainRequest) []error {

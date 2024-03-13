@@ -31,7 +31,7 @@ func GenerateJWT(user models.SignInUserRequest) (string, error) {
 }
 
 // validate user JWT token
-func ValidateJWT(context echo.Context) (string, error) {
+func ValidateUserJWT(context echo.Context) (string, error) {
 	token, err := getToken(context)
 	if err != nil {
 		return "", err
@@ -46,18 +46,18 @@ func ValidateJWT(context echo.Context) (string, error) {
 }
 
 // validate Admin JWT token
-func ValidateAdminRoleJWT(context echo.Context) error {
+func ValidateAdminRoleJWT(context echo.Context) (string, error) {
 	token, err := getToken(context)
 	if err != nil {
-		return err
+		return "", err
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	role := uint(claims["role"].(float64))
 
 	if ok && token.Valid && role == uint(enums.Admin) {
-		return nil
+		return claims["id"].(string), nil
 	}
-	return errors.New("invalid token provided")
+	return "", errors.New("invalid token provided")
 }
 
 // check token validity

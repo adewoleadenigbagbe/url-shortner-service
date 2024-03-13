@@ -18,7 +18,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	type shortDto struct {
 		Hash           string
 		OriginalUrl    string
-		DomainId       string
+		DomainName     string
 		Alias          helpers.Nullable[string]
 		CreatedOn      time.Time
 		ExpirationDate time.Time
@@ -35,13 +35,14 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	offset := (request.Page - 1) * request.PageLength
 
 	query := fmt.Sprintf(`
-	SELECT Hash,OriginalUrl,DomainId, Alias, CreatedOn, 
-	ExpirationDate FROM shortlinks 
-	WHERE UserId = %q AND IsDeprecated = %t 
+	SELECT shortlinks.Hash,shortlinks.OriginalUrl,domains.Name, shortlinks.Alias, shortlinks.CreatedOn, 
+	shortlinks.ExpirationDate FROM shortlinks 
+	JOIN domains on shortlinks.DomainId = domains.Id
+	WHERE shortlinks.UserId = %q AND shortlinks.IsDeprecated = %t AND domains.IsDeprecated = %t
 	ORDER BY %s LIMIT %d OFFSET %d`,
-		request.UserId, false, sortAndOrder, request.PageLength, offset)
+		request.UserId, false, false, sortAndOrder, request.PageLength, offset)
 
-	rows, err := urlService.Db.Query(query, request.UserId, false, sortAndOrder, request.PageLength, offset)
+	rows, err := urlService.Db.Query(query)
 	if err != nil {
 		return urlContext.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -50,7 +51,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	var shorts []shortDto
 	for rows.Next() {
 		var short shortDto
-		err = rows.Scan(&short.Hash, &short.OriginalUrl, &short.DomainId, &short.Alias, &short.CreatedOn, &short.ExpirationDate)
+		err = rows.Scan(&short.Hash, &short.OriginalUrl, &short.DomainName, &short.Alias, &short.CreatedOn, &short.ExpirationDate)
 		if err != nil {
 			return urlContext.JSON(http.StatusInternalServerError, err.Error())
 		}
@@ -74,7 +75,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 		data := models.GetShortData{
 			Short:          short.Hash,
 			OriginalUrl:    short.OriginalUrl,
-			Domain:         short.DomainId,
+			Domain:         short.DomainName,
 			Alias:          short.Alias,
 			CreatedOn:      short.CreatedOn,
 			ExpirationDate: short.ExpirationDate,

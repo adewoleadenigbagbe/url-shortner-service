@@ -47,12 +47,12 @@ func (service UrlService) CreateShortUrl(urlContext echo.Context) error {
 	now := time.Now()
 	expirationDate := now.AddDate(expirySpan, 0, 0)
 	_, err = service.Db.Exec("INSERT INTO shortlinks VALUES(?,?,?,?,?,?,?,?,?,?);",
-		short, request.OriginalUrl, request.DomainName, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
+		short, request.OriginalUrl, request.DomainId, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
 
 	if err != nil {
 		return urlContext.JSON(http.StatusInternalServerError, err)
 	}
-	return urlContext.JSON(http.StatusCreated, models.CreateUrlResponse{ShortUrl: short, Domain: request.DomainName})
+	return urlContext.JSON(http.StatusCreated, models.CreateUrlResponse{ShortUrl: short, DomainId: request.DomainId})
 }
 
 func validateUrlRequest(request models.CreateUrlRequest) []error {
@@ -61,8 +61,8 @@ func validateUrlRequest(request models.CreateUrlRequest) []error {
 		validationErrors = append(validationErrors, errors.New("userId is required"))
 	}
 
-	if request.DomainName == "" {
-		validationErrors = append(validationErrors, errors.New("domain is required"))
+	if request.DomainId == "" {
+		validationErrors = append(validationErrors, errors.New("domainId is required"))
 	}
 
 	if request.OriginalUrl == "" {
