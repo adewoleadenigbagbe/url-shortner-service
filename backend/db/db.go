@@ -6,8 +6,13 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
+)
+
+var (
+	TargetFolderPath = "backend"
 )
 
 type CommandType uint8
@@ -17,18 +22,14 @@ const (
 	Down
 )
 
-const (
-	dbFile = "urlshortnerDB.db"
-)
-
 // connect to sqllite
-func ConnectToSQLite() (*sql.DB, error) {
-	err := createDatabaseIfExist()
+func ConnectToSQLite(filepath string) (*sql.DB, error) {
+	err := createDatabaseIfExist(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := sql.Open("sqlite3", dbFile)
+	db, err := sql.Open("sqlite3", filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -37,24 +38,23 @@ func ConnectToSQLite() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
 
 	return db, nil
 }
 
 // create a new database if it does not exist
-func createDatabaseIfExist() error {
+func createDatabaseIfExist(path string) error {
 	var (
 		err  error
 		file *os.File
 	)
 
-	exist := doesFileExist()
-	if exist {
+	fileExist := doesFileExist(path)
+	if fileExist {
 		return nil
 	}
 
-	_, err = os.Create(dbFile)
+	_, err = os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -64,11 +64,11 @@ func createDatabaseIfExist() error {
 }
 
 // function to check if file exists
-func doesFileExist() bool {
-	_, error := os.Stat(dbFile)
+func doesFileExist(path string) bool {
+	_, err := os.Stat(path)
 
 	// check if error is "file not exists"
-	return os.IsNotExist(error)
+	return !os.IsNotExist(err)
 }
 
 func executeTableCmd(db *sql.DB, cmdType CommandType) error {
@@ -81,7 +81,12 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 		return err
 	}
 
-	path := filepath.Join(currentWorkingDirectory, "db")
+	index := strings.Index(currentWorkingDirectory, TargetFolderPath)
+	if index == -1 {
+		return errors.New("app Root Folder Path not found")
+	}
+
+	path := filepath.Join(currentWorkingDirectory[:index], TargetFolderPath, "db")
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return err
@@ -89,12 +94,12 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 
 	switch cmdType {
 	case Up:
-		query, err = getFileContent(files, path, "createtable.sql")
+		query, err = getFileContent(files, path, "create_table.sql")
 		if err != nil {
 			return err
 		}
 	case Down:
-		query, err = getFileContent(files, path, "droptable.sql")
+		query, err = getFileContent(files, path, "drop_table.sql")
 		if err != nil {
 			return err
 		}
@@ -104,6 +109,7 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 
 	//TODO:Change this to ExecContext later
 	_, err = db.Exec(query)
+
 	if err != nil {
 		return err
 	}
