@@ -23,7 +23,7 @@ type DeleteUrlRequest struct {
 }
 
 type RedirectShortRequest struct {
-	ShortUrl string `json:"shorturl"`
+	ShortUrl string `query:"shorturl"`
 }
 
 type GetShortRequest struct {
