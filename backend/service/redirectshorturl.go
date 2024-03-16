@@ -23,11 +23,10 @@ func (service UrlService) RedirectShort(urlContext echo.Context) error {
 
 	var originalUrl string
 	var hits int64
-	var id string
-	query := `SELECT shortlinks.Id,shortlinks.OriginalUrl, shortlinks.Hits FROM shortlinks JOIN domains ON shortlinks.DomainId = domains.Id 
+	query := `SELECT shortlinks.OriginalUrl, shortlinks.Hits FROM shortlinks JOIN domains ON shortlinks.DomainId = domains.Id 
 	 WHERE shortlinks.Hash=? AND shortlinks.IsDeprecated=? AND domains.IsDeprecated=?`
 	row := service.Db.QueryRow(query, request.ShortUrl, false, false)
-	if err = row.Scan(&id, &originalUrl, &hits); errors.Is(err, sql.ErrNoRows) {
+	if err = row.Scan(&originalUrl, &hits); errors.Is(err, sql.ErrNoRows) {
 		return urlContext.JSON(http.StatusNotFound, err.Error())
 	}
 
@@ -37,7 +36,7 @@ func (service UrlService) RedirectShort(urlContext echo.Context) error {
 		return urlContext.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	_, err = tx.Exec("UPDATE shortlinks SET Hits =? WHERE Id =?", hits+1, id)
+	_, err = tx.Exec("UPDATE shortlinks SET Hits =? WHERE Hash =?", hits+1, request.ShortUrl)
 	if err != nil {
 		tx.Rollback()
 		return urlContext.JSON(http.StatusInternalServerError, err.Error())
