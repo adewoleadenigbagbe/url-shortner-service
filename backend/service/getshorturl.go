@@ -27,7 +27,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	request := new(models.GetShortRequest)
 	err = urlContext.Bind(request)
 	if err != nil {
-		return urlContext.JSON(http.StatusBadRequest, err.Error())
+		return urlContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	setDefaultRequest(request)
@@ -44,7 +44,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 
 	rows, err := urlService.Db.Query(query)
 	if err != nil {
-		return urlContext.JSON(http.StatusInternalServerError, err.Error())
+		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 	defer rows.Close()
 
@@ -53,7 +53,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 		var short shortDto
 		err = rows.Scan(&short.Hash, &short.OriginalUrl, &short.DomainName, &short.Alias, &short.CreatedOn, &short.ExpirationDate)
 		if err != nil {
-			return urlContext.JSON(http.StatusInternalServerError, err.Error())
+			return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
 		shorts = append(shorts, short)
 	}
@@ -61,13 +61,13 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	query2 := `SELECT COUNT(1) FROM shortlinks WHERE userId =? AND IsDeprecated=?`
 	row := urlService.Db.QueryRow(query2, request.UserId, false)
 	if row.Err() != nil {
-		return urlContext.JSON(http.StatusInternalServerError, row.Err().Error())
+		return urlContext.JSON(http.StatusInternalServerError, []string{row.Err().Error()})
 	}
 
 	var count int
 	err = row.Scan(&count)
 	if err != nil {
-		return urlContext.JSON(http.StatusInternalServerError, err)
+		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	var shortDatas []models.GetShortData

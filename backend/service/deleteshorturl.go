@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
@@ -13,11 +12,11 @@ func (service UrlService) DeleteShortUrl(urlContext echo.Context) error {
 	request := new(models.DeleteUrlRequest)
 	err = urlContext.Bind(request)
 	if err != nil {
-		return urlContext.JSON(http.StatusBadRequest, err.Error())
+		return urlContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	if len(request.ShortUrl) == 0 {
-		return urlContext.JSON(http.StatusBadRequest, errors.New("link should not be empty"))
+		return urlContext.JSON(http.StatusBadRequest, []string{"link should not be empty"})
 	}
 
 	result, _ := service.Db.Exec("UPDATE shortlinks SET IsDeprecated =? WHERE Hash =?", false, request.ShortUrl)
@@ -26,5 +25,5 @@ func (service UrlService) DeleteShortUrl(urlContext echo.Context) error {
 		return urlContext.JSON(http.StatusNoContent, nil)
 	}
 
-	return urlContext.JSON(http.StatusNotFound, err)
+	return urlContext.JSON(http.StatusNotFound, []string{err.Error()})
 }

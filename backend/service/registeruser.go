@@ -25,7 +25,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	request := new(models.RegisterUserRequest)
 	err = authContext.Bind(request)
 	if err != nil {
-		return authContext.JSON(http.StatusBadRequest, err.Error())
+		return authContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	//client validation
@@ -48,12 +48,12 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	var roleId string
 	err = row.Scan(&roleId)
 	if err != nil {
-		return authContext.JSON(http.StatusInternalServerError, err.Error())
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	tx, err := service.Db.Begin()
 	if err != nil {
-		return authContext.JSON(http.StatusInternalServerError, err.Error())
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	//save user
@@ -63,7 +63,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 
 	if err != nil {
 		tx.Rollback()
-		return authContext.JSON(http.StatusInternalServerError, err.Error())
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	//save keys
@@ -75,7 +75,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
 	if err != nil {
 		tx.Rollback()
-		return authContext.JSON(http.StatusInternalServerError, err.Error())
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	tx.Commit()
