@@ -33,7 +33,7 @@ CREATE INDEX IF NOT EXISTS idx_domains_createdById on domains (CreatedById);
 
 
 CREATE TABLE IF NOT EXISTS shortlinks(
-   Hash VARCHAR(6) PRIMARY KEY NOT NULL,
+   Hash VARCHAR(8) PRIMARY KEY NOT NULL,
    OriginalUrl VARCHAR(255) NOT NULL,
    DomainId CHAR(36) NOT NULL,
    Alias VARCHAR(10) NULL,
@@ -50,7 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_shortlinks_domainId ON shortlinks (DomainId);
 
 
 CREATE TABLE IF NOT EXISTS unusedshortlinks(
-   Hash VARCHAR(6) PRIMARY KEY NOT NULL,
+   Hash VARCHAR(8) PRIMARY KEY NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    ExpirationDate DATETIME NOT NULL,
@@ -67,5 +67,46 @@ CREATE TABLE IF NOT EXISTS userkeys(
    IsActive BOOLEAN NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_userkeys_userId ON userkeys (UserId);
+
+CREATE TABLE IF NOT EXISTS accesslogs(
+   Id CHAR(36)  NOT NULL PRIMARY KEY,
+   Hash VARCHAR(8) NOT NULL,
+   CreatedOn DATETIME NOT NULL,
+   Country VARCHAR(50) NULL,
+   TimeZone  VARCHAR(50) NULL,
+   City VARCHAR(50) NULL,
+   Os VARCHAR(50) NULL,
+   Browser  VARCHAR(50) NULL,
+   IsDeprecated BOOLEAN NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_accesslogs_hash ON accesslogs (Hash);
+
+CREATE TABLE IF NOT EXISTS clicks(
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   Hash VARCHAR(8) NOT NULL,
+   Hits INTEGER NOT NULL,
+   CreatedOn DATETIME NOT NULL,  
+   ModifiedOn DATETIME NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_clicks_hash ON clicks (Hash);
+
+CREATE TABLE IF NOT EXISTS payrates(
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   Type INTEGER NOT NULL,
+   IsActive BOOLEAN NOT NULL,
+   CreatedById CHAR(36) NOT NULL,
+   CreatedOn DATETIME NOT NULL,  
+   ModifiedOn DATETIME NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS revenues(
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   Type INTEGER NOT NULL,
+   Amount DOUBLE NOT NULL,
+   Hash VARCHAR(8) NOT NULL,
+   CreatedOn DATETIME NOT NULL, 
+   UserId CHAR(36) NOT NULL,
+   ModifiedOn DATETIME NOT NULL
+);
 
 COMMIT;
