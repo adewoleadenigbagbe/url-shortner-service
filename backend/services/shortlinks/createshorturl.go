@@ -17,6 +17,10 @@ const (
 	DuplicateUrl = "Duplicate... Url already exist"
 )
 
+type UrlService struct {
+	Db *sql.DB
+}
+
 func (service UrlService) CreateShortUrl(urlContext echo.Context) error {
 	var err error
 	request := new(models.CreateUrlRequest)

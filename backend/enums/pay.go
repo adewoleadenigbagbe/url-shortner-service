@@ -1,9 +1,9 @@
 package enums
 
-type PayType int
+type PayPlan int
 
 const (
-	Premium PayType = iota + 1
-	Standard
-	Gold
+	Free PayPlan = iota + 1
+	Team
+	Enterprise
 )
