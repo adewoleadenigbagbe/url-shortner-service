@@ -3,6 +3,7 @@ package enums
 type Role int
 
 const (
-	Admin   Role = 1
-	EndUser Role = 2
+	Readonly      Role = 1
+	User          Role = 2
+	Administrator Role = 3
 )

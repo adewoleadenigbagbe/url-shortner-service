@@ -41,7 +41,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	userid := sequentialguid.NewSequentialGuid().String()
 	usercreatedOn := time.Now()
 
-	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.EndUser)
+	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.User)
 	if errors.Is(row.Err(), sql.ErrNoRows) {
 		return authContext.JSON(http.StatusNotFound, errors.New("no role found"))
 	}
