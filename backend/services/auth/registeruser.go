@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	expiryYear = 1
-	emailRegex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+	expiryYear       = 1
+	emailRegex       = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+	PhoneNumberRegex = "\\+[1-9]{1}[0-9]{0,2}-[2-9]{1}[0-9]{2}-[2-9]{1}[0-9]{2}-[0-9]{4}$"
 )
 
 type AuthService struct {
@@ -43,18 +44,26 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 		return authContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
-	//generate api key
-	userid := sequentialguid.NewSequentialGuid().String()
-	usercreatedOn := time.Now()
-
-	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.User)
+	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.Administrator)
 	if errors.Is(row.Err(), sql.ErrNoRows) {
-		return authContext.JSON(http.StatusNotFound, errors.New("no role found"))
+		return authContext.JSON(http.StatusNotFound, []string{"no role found"})
 	}
+
 	var roleId string
 	err = row.Scan(&roleId)
 	if err != nil {
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	var count int
+	queryOrgRow := service.Db.QueryRow("SELECT COUNT(1) FROM organizations WHERE Name=?", request.Company)
+	err = queryOrgRow.Scan(&count)
+	if err != nil {
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	if count > 0 {
+		return authContext.JSON(http.StatusBadRequest, []string{"company name exist"})
 	}
 
 	tx, err := service.Db.Begin()
@@ -62,22 +71,35 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	//save user
-	_, err = tx.Exec(`INSERT INTO users VALUES(?,?,?,?,?,?,?,?);`,
-		userid, request.UserName, request.Email, usercreatedOn,
-		usercreatedOn, usercreatedOn, roleId, false)
+	// create organization
+	userid := sequentialguid.NewSequentialGuid().String()
+	organizationId := sequentialguid.NewSequentialGuid().String()
+	organizationCreatedOn := time.Now()
+	_, err = tx.Exec(`INSERT INTO organizations VALUES(?,?,?,?,?,?,?);`,
+		organizationId, request.Company, request.PhoneNumber, userid, organizationCreatedOn,
+		organizationCreatedOn, false)
 
 	if err != nil {
 		tx.Rollback()
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	//save keys
+	//create user
+	hashedPassword := helpers.GeneratePassword(request.Password)
+	usercreatedOn := time.Now()
+	_, err = tx.Exec(`INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?,?);`,
+		userid, request.UserName, request.Email, hashedPassword, usercreatedOn,
+		usercreatedOn, usercreatedOn, roleId, organizationId, sql.NullString{}, false)
+	if err != nil {
+		tx.Rollback()
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	//create userkeys
 	userKeyId := sequentialguid.NewSequentialGuid().String()
 	apikey := helpers.GenerateApiKey(request.Email)
 	keyCreatedOn := time.Now()
 	expiryDate := keyCreatedOn.AddDate(expiryYear, 0, 0)
-
 	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
 	if err != nil {
 		tx.Rollback()
@@ -95,9 +117,23 @@ func validateUser(user models.RegisterUserRequest) []error {
 		validationErrors = append(validationErrors, errors.New("username is required"))
 	}
 
+	if user.Password == "" {
+		validationErrors = append(validationErrors, errors.New("password is required"))
+	}
+
+	if user.Company == "" {
+		validationErrors = append(validationErrors, errors.New("company name is required"))
+	}
+
 	isEmailValid, _ := regexp.MatchString(emailRegex, user.Email)
 	if !isEmailValid {
 		validationErrors = append(validationErrors, errors.New("email is invalid"))
 	}
+
+	isPhoneValid, _ := regexp.MatchString(PhoneNumberRegex, user.PhoneNumber)
+	if !isPhoneValid {
+		validationErrors = append(validationErrors, errors.New("phone number is invalid"))
+	}
+
 	return validationErrors
 }
