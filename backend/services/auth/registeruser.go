@@ -12,6 +12,7 @@ import (
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
+	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 )
 
@@ -19,6 +20,11 @@ const (
 	expiryYear = 1
 	emailRegex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
 )
+
+type AuthService struct {
+	Db  *sql.DB
+	Rdb *redis.Client
+}
 
 func (service AuthService) RegisterUser(authContext echo.Context) error {
 	var err error
@@ -41,7 +47,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	userid := sequentialguid.NewSequentialGuid().String()
 	usercreatedOn := time.Now()
 
-	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.EndUser)
+	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.User)
 	if errors.Is(row.Err(), sql.ErrNoRows) {
 		return authContext.JSON(http.StatusNotFound, errors.New("no role found"))
 	}

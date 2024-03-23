@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -14,6 +15,10 @@ import (
 const (
 	DuplicateName = "Duplicate... Name already exist"
 )
+
+type DomainService struct {
+	Db *sql.DB
+}
 
 func (service DomainService) CreateDomain(domainContext echo.Context) error {
 	var (

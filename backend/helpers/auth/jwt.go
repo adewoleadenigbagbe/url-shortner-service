@@ -39,7 +39,7 @@ func ValidateUserJWT(context echo.Context) (string, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	role := uint(claims["role"].(float64))
 
-	if ok && token.Valid && role == uint(enums.EndUser) {
+	if ok && token.Valid && role > uint(enums.Readonly) {
 		return claims["id"].(string), nil
 	}
 	return "", errors.New("invalid token provided")
@@ -54,7 +54,7 @@ func ValidateAdminRoleJWT(context echo.Context) (string, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	role := uint(claims["role"].(float64))
 
-	if ok && token.Valid && role == uint(enums.Admin) {
+	if ok && token.Valid && role == uint(enums.Administrator) {
 		return claims["id"].(string), nil
 	}
 	return "", errors.New("invalid token provided")

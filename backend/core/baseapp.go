@@ -8,7 +8,9 @@ import (
 	"time"
 
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
-	services "github.com/adewoleadenigbagbe/url-shortner-service/service"
+	auth "github.com/adewoleadenigbagbe/url-shortner-service/services/auth"
+	domain "github.com/adewoleadenigbagbe/url-shortner-service/services/domain"
+	link "github.com/adewoleadenigbagbe/url-shortner-service/services/shortlinks"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
 )
@@ -21,9 +23,9 @@ type BaseApp struct {
 	Echo          *echo.Echo
 	Db            *sql.DB
 	Rdb           *redis.Client
-	AuthService   services.AuthService
-	UrlService    services.UrlService
-	DomainService services.DomainService
+	AuthService   auth.AuthService
+	UrlService    link.UrlService
+	DomainService domain.DomainService
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
@@ -52,14 +54,14 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 		Echo: echo.New(),
 		Db:   db,
 		Rdb:  redisClient,
-		AuthService: services.AuthService{
+		AuthService: auth.AuthService{
 			Db:  db,
 			Rdb: redisClient,
 		},
-		UrlService: services.UrlService{
+		UrlService: link.UrlService{
 			Db: db,
 		},
-		DomainService: services.DomainService{
+		DomainService: domain.DomainService{
 			Db: db,
 		},
 	}
