@@ -17,7 +17,7 @@ func (service AuthService) LoginUser(authContext echo.Context) error {
 	err = authContext.Bind(request)
 
 	if err != nil {
-		return authContext.JSON(http.StatusBadRequest, err.Error())
+		return authContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	var apikey string
@@ -34,9 +34,9 @@ func (service AuthService) LoginUser(authContext echo.Context) error {
 	row := service.Db.QueryRow(query, request.Email, false, false, true)
 	if err = row.Scan(&id, &apikey, &role); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return authContext.JSON(http.StatusBadRequest, errors.New("email is incorrect").Error())
+			return authContext.JSON(http.StatusBadRequest, []string{"email is incorrect"})
 		} else {
-			return authContext.JSON(http.StatusInternalServerError, err.Error())
+			return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
 	}
 
@@ -44,7 +44,7 @@ func (service AuthService) LoginUser(authContext echo.Context) error {
 	request.Role = role
 	token, err := jwtauth.GenerateJWT(*request)
 	if err != nil {
-		return authContext.JSON(http.StatusBadRequest, err.Error())
+		return authContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	return authContext.JSON(http.StatusOK, models.SignInUserResponse{Token: token, Id: id, ApiKey: apikey})

@@ -26,7 +26,7 @@ func (service UrlService) CreateShortUrl(urlContext echo.Context) error {
 	request := new(models.CreateUrlRequest)
 	err = urlContext.Bind(request)
 	if err != nil {
-		return urlContext.JSON(http.StatusBadRequest, err.Error())
+		return urlContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	errs := validateUrlRequest(*request)
@@ -40,11 +40,11 @@ func (service UrlService) CreateShortUrl(urlContext echo.Context) error {
 	var count int64
 	err = service.Db.QueryRow("SELECT COUNT(1) FROM shortlinks WHERE OriginalUrl =?", request.OriginalUrl).Scan(&count)
 	if err != nil {
-		return urlContext.JSON(http.StatusInternalServerError, err.Error())
+		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	if count > 0 {
-		return urlContext.JSON(http.StatusBadRequest, DuplicateUrl)
+		return urlContext.JSON(http.StatusBadRequest, []string{DuplicateUrl})
 	}
 
 	short := helpers.GenerateShortLink(request.OriginalUrl)
@@ -54,7 +54,7 @@ func (service UrlService) CreateShortUrl(urlContext echo.Context) error {
 		short, request.OriginalUrl, request.DomainId, request.CustomAlias, sql.NullInt64{Valid: false}, now, now, expirationDate, false, request.UserId)
 
 	if err != nil {
-		return urlContext.JSON(http.StatusInternalServerError, err)
+		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 	return urlContext.JSON(http.StatusCreated, models.CreateUrlResponse{ShortUrl: short, DomainId: request.DomainId})
 }

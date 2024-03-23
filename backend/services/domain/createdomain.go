@@ -21,11 +21,13 @@ type DomainService struct {
 }
 
 func (service DomainService) CreateDomain(domainContext echo.Context) error {
-	var err error
+	var (
+		err error
+	)
 	request := new(models.CreateDomainRequest)
 	err = domainContext.Bind(request)
 	if err != nil {
-		return domainContext.JSON(http.StatusBadRequest, err.Error())
+		return domainContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	errs := validateDomainRequest(*request)
@@ -39,11 +41,11 @@ func (service DomainService) CreateDomain(domainContext echo.Context) error {
 	var count int64
 	err = service.Db.QueryRow("SELECT COUNT(1) FROM domains WHERE Name =?", request.Name).Scan(&count)
 	if err != nil {
-		return domainContext.JSON(http.StatusInternalServerError, err.Error())
+		return domainContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	if count > 0 {
-		return domainContext.JSON(http.StatusBadRequest, DuplicateName)
+		return domainContext.JSON(http.StatusBadRequest, []string{DuplicateName})
 	}
 
 	now := time.Now()
@@ -52,7 +54,7 @@ func (service DomainService) CreateDomain(domainContext echo.Context) error {
 		domainId, request.Name, now, now, false, request.UserId)
 
 	if err != nil {
-		return domainContext.JSON(http.StatusInternalServerError, err)
+		return domainContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 	return domainContext.JSON(http.StatusCreated, models.CreateDomainResponse{DomainId: domainId, Name: request.Name})
 }

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
@@ -13,11 +12,11 @@ func (service DomainService) DeleteDomain(domainContext echo.Context) error {
 	request := new(models.DeleteDomainRequest)
 	err = domainContext.Bind(request)
 	if err != nil {
-		return domainContext.JSON(http.StatusBadRequest, err.Error())
+		return domainContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
 	if len(request.Name) == 0 {
-		return domainContext.JSON(http.StatusBadRequest, errors.New("domain name is required"))
+		return domainContext.JSON(http.StatusBadRequest, []string{"domain name is required"})
 	}
 
 	result, _ := service.Db.Exec("UPDATE domains SET IsDeprecated =? WHERE Name =?", false, request.Name)
@@ -26,5 +25,5 @@ func (service DomainService) DeleteDomain(domainContext echo.Context) error {
 		return domainContext.JSON(http.StatusNoContent, nil)
 	}
 
-	return domainContext.JSON(http.StatusNotFound, err)
+	return domainContext.JSON(http.StatusNotFound, []string{err.Error()})
 }
