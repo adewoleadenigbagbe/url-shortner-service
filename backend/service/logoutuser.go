@@ -26,7 +26,7 @@ func (service AuthService) LogOut(authContext echo.Context) error {
 		} else {
 			statusCode = http.StatusInternalServerError
 		}
-		return authContext.JSON(statusCode, err)
+		return authContext.JSON(statusCode, []string{err.Error()})
 	}
 
 	service.Rdb.Del(ctx, request.UserId)
