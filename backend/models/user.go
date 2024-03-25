@@ -27,3 +27,25 @@ type SignInUserResponse struct {
 type SignOutUserRequest struct {
 	UserId string `json:"userId"`
 }
+
+type Invite struct {
+	Email  string `json:"email"`
+	RoleId string `json:"roleId"`
+}
+
+type SendEmailRequest struct {
+	Invites    []Invite `json:"invites"`
+	ReferralId string   `json:"referralId"`
+}
+
+type ConvertReferralRequest struct {
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	ReferralId string `json:"referralId"`
+}
+
+type ConvertReferralResponse struct {
+	Id     string `json:"userId"`
+	ApiKey string `json:"apikey"`
+}

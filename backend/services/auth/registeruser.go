@@ -16,11 +16,6 @@ import (
 	"github.com/samber/lo"
 )
 
-const (
-	expiryYear = 1
-	emailRegex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
-)
-
 type AuthService struct {
 	Db  *sql.DB
 	Rdb *redis.Client
@@ -76,7 +71,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	userKeyId := sequentialguid.NewSequentialGuid().String()
 	apikey := helpers.GenerateApiKey(request.Email)
 	keyCreatedOn := time.Now()
-	expiryDate := keyCreatedOn.AddDate(expiryYear, 0, 0)
+	expiryDate := keyCreatedOn.AddDate(models.ApiExpiry, 0, 0)
 
 	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
 	if err != nil {
@@ -85,7 +80,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	}
 
 	tx.Commit()
-	return authContext.JSON(http.StatusOK, models.RegisterUserResponse{Id: userid, ApiKey: apikey})
+	return authContext.JSON(http.StatusCreated, models.RegisterUserResponse{Id: userid, ApiKey: apikey})
 }
 
 func validateUser(user models.RegisterUserRequest) []error {
@@ -95,7 +90,7 @@ func validateUser(user models.RegisterUserRequest) []error {
 		validationErrors = append(validationErrors, errors.New("username is required"))
 	}
 
-	isEmailValid, _ := regexp.MatchString(emailRegex, user.Email)
+	isEmailValid, _ := regexp.MatchString(models.EmailRegex, user.Email)
 	if !isEmailValid {
 		validationErrors = append(validationErrors, errors.New("email is invalid"))
 	}

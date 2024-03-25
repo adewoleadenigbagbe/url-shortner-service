@@ -48,8 +48,8 @@ CREATE INDEX IF NOT EXISTS idx_organizations_ownerId on organizations (OwnerId);
 
 CREATE TABLE IF NOT EXISTS invites(
    Id CHAR(36) NOT NULL PRIMARY KEY,
-   UserName VARCHAR(255) NOT NULL,
    Email VARCHAR(50) NOT NULL,
+   ReferralUserId CHAR(36) NULL,
    RoleId CHAR(36) NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_invites_email on invites(Email);
