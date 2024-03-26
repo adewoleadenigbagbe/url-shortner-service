@@ -17,6 +17,10 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser)
 	router.GET("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
 	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin)
+
+	router.POST("/api/v1/teams", app.TeamService.AddTeam, middleware.AuthorizeAdmin)
+	router.POST("/api/v1/teams/add-user", app.TeamService.AddUserToTeam, middleware.AuthorizeAdmin)
+
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})

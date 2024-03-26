@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS invites(
 );
 CREATE INDEX IF NOT EXISTS idx_invites_email on invites(Email);
 
-
 -- TEAMS
 CREATE TABLE IF NOT EXISTS teams(
    Id CHAR(36) NOT NULL PRIMARY KEY,
