@@ -21,7 +21,7 @@ type UrlService struct {
 	Db *sql.DB
 }
 
-func (service UrlService) CreateShortUrl(urlContext echo.Context) error {
+func (service UrlService) CreateShortLink(urlContext echo.Context) error {
 	var err error
 	request := new(models.CreateUrlRequest)
 	err = urlContext.Bind(request)
