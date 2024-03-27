@@ -139,6 +139,8 @@ CREATE TABLE IF NOT EXISTS shortlinktags(
    TagId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_shortlinktags_hash ON shortlinktags (Hash);
+CREATE INDEX IF NOT EXISTS idx_shortlinktags_tagId ON shortlinktags (TagId);
 
 -- PLANS & PAYMENTS
 CREATE TABLE IF NOT EXISTS payplans(
