@@ -60,14 +60,7 @@ CREATE TABLE IF NOT EXISTS invites(
 CREATE INDEX IF NOT EXISTS idx_invites_email on invites(Email);
 
 -- TEAMS
-CREATE VIRTUAL TABLE IF NOT EXISTS teams USING fts5(
-   Id CHAR(36) NOT NULL,
-   Name VARCHAR(255) NOT NULL,
-   OrganizationId CHAR(36) NOT NULL,
-   IsDeprecated BOOLEAN NOT NULL
-);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_teams_name on teams (Name);
-CREATE INDEX IF NOT EXISTS idx_teams_organizationId on teams (OrganizationId);
+CREATE VIRTUAL TABLE IF NOT EXISTS teams USING fts4(Id,Name,OrganizationId,IsDeprecated);
 
 CREATE TABLE IF NOT EXISTS teamusers(
    Id CHAR(36) NOT NULL PRIMARY KEY,
@@ -85,8 +78,8 @@ CREATE TABLE IF NOT EXISTS domains(
    OrganizationId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
-   IsDeprecated BOOLEAN NOT NULL,
-   CreatedById CHAR(36) NOT NULL
+   CreatedById CHAR(36) NOT NULL,
+   IsDeprecated BOOLEAN NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_domains_name on domains (Name);
 CREATE INDEX IF NOT EXISTS idx_domains_createdById on domains (CreatedById);
@@ -100,8 +93,8 @@ CREATE TABLE IF NOT EXISTS shortlinks(
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    ExpirationDate DATETIME NOT NULL,
-   IsDeprecated BOOLEAN NOT NULL,
-   OrganizationId CHAR(36) NULL
+   OrganizationId CHAR(36) NULL,
+   IsDeprecated BOOLEAN NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_shortlinks_original_url ON shortlinks (OriginalUrl);
 CREATE INDEX IF NOT EXISTS idx_shortlinks_organizationId ON shortlinks (OrganizationId);
@@ -138,16 +131,12 @@ CREATE INDEX IF NOT EXISTS idx_accesslogs_hash ON accesslogs (Hash);
 CREATE INDEX IF NOT EXISTS idx_accesslogs_createdon ON accesslogs (CreatedOn);
 CREATE INDEX IF NOT EXISTS idx_accesslogs_organizationId ON accesslogs (OrganizationId);
 
-CREATE VIRTUAL TABLE IF NOT EXISTS tags USING fts5(
-   Id CHAR(36)  NOT NULL,
-   Name VARCHAR(255) NOT NULL,
-   CreatedOn DATETIME NOT NULL
-);
+CREATE VIRTUAL TABLE IF NOT EXISTS tags USING fts4(Id,Name,CreatedOn);
 
 CREATE TABLE IF NOT EXISTS shortlinktags(
    Id CHAR(36)  NOT NULL PRIMARY KEY,
-   TagId CHAR(36) NOT NULL,
    Hash VARCHAR(8) NOT NULL,
+   TagId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL
 );
 
@@ -163,9 +152,9 @@ CREATE TABLE IF NOT EXISTS payplans(
 
 CREATE TABLE IF NOT EXISTS organizationpayplans(
    Id CHAR(36)  NOT NULL PRIMARY KEY,
+   PayCycle INTEGER NOT NULL,
    PayPlanId CHAR(36) NOT NULL,
    OrganizationId CHAR(36) NOT NULL,
-   PayCycle INTEGER NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    IsLatest BOOLEAN NOT NULL
@@ -175,12 +164,12 @@ CREATE INDEX IF NOT EXISTS idx_organizationpayplans_OrganizationId ON organizati
 
 CREATE TABLE IF NOT EXISTS payschedules(
    Id CHAR(36) NOT NULL PRIMARY KEY,
-   OrganizationPayPlanId CHAR(36) NOT NULL,
    EffectiveDate DATETIME NOT NULL,
    EndDate DATETIME NOT NULL,
    CreatedOn DATETIME NOT NULL,
-   OrganizationId CHAR(36) NOT NULL,
    ModifiedOn DATETIME NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
+   OrganizationPayPlanId CHAR(36) NOT NULL,
    IsNext BOOLEAN NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_payschedules_OrganizationPayPlanId ON payschedules (OrganizationPayPlanId);
@@ -189,11 +178,11 @@ CREATE INDEX IF NOT EXISTS idx_payschedules_OrganizationId ON payschedules (Orga
 
 CREATE TABLE IF NOT EXISTS revenues(
    Id CHAR(36) NOT NULL PRIMARY KEY,
-   PayScheduleId CHAR(36) NOT NULL,
-   OrganizationId CHAR(36) NOT NULL,
    Amount DOUBLE NOT NULL,
    StartDate DATETIME NOT NULL,
    EndDate DATETIME NOT NULL,
+   PayScheduleId CHAR(36) NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL
 );
