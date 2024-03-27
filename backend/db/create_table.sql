@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS users(
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    LastLogin DATETIME NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
    ReferralUserId CHAR(36) NULL,
-   OrganizationId CHAR(36) NULL,
    RoleId CHAR(36) NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS userkeys(
    ModifiedOn DATETIME NOT NULL,
    ExpirationDate DATETIME NOT NULL,
    UserId CHAR(36) NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
    IsActive BOOLEAN NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_userkeys_userId ON userkeys (UserId);
@@ -39,27 +40,29 @@ CREATE INDEX IF NOT EXISTS idx_userkeys_userId ON userkeys (UserId);
 CREATE TABLE IF NOT EXISTS organizations(
    Id CHAR(36) NOT NULL PRIMARY KEY,
    Name VARCHAR(255) NOT NULL,
+   PhoneNumber VARCHAR(20) NOT NULL,
    OwnerId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_organizations_ownerId on organizations (OwnerId);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_organizations_Name on organizations (Name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_organizations_ownerId on organizations (OwnerId);
 
 CREATE TABLE IF NOT EXISTS invites(
    Id CHAR(36) NOT NULL PRIMARY KEY,
    UserName VARCHAR(255) NOT NULL,
    Email VARCHAR(50) NOT NULL,
+   ReferralUserId CHAR(36) NOT NULL,
    RoleId CHAR(36) NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_invites_email on invites(Email);
 
-
 -- TEAMS
-CREATE TABLE IF NOT EXISTS teams(
-   Id CHAR(36) NOT NULL PRIMARY KEY,
+CREATE VIRTUAL TABLE IF NOT EXISTS teams USING fts5(
+   Id CHAR(36) NOT NULL,
    Name VARCHAR(255) NOT NULL,
-   OrganizationId CHAR(36) NULL,
+   OrganizationId CHAR(36) NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_teams_name on teams (Name);
@@ -78,7 +81,7 @@ CREATE TABLE IF NOT EXISTS domains(
    Id CHAR(36) NOT NULL PRIMARY KEY,
    Name VARCHAR(255) NOT NULL,
    IsCustom BOOLEAN NOT NULL,
-   OrganizationId CHAR(36) NULL,
+   OrganizationId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    IsDeprecated BOOLEAN NOT NULL,
@@ -86,7 +89,6 @@ CREATE TABLE IF NOT EXISTS domains(
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_domains_name on domains (Name);
 CREATE INDEX IF NOT EXISTS idx_domains_createdById on domains (CreatedById);
-
 
 -- SHORTLINKS
 CREATE TABLE IF NOT EXISTS shortlinks(
@@ -128,9 +130,72 @@ CREATE TABLE IF NOT EXISTS accesslogs(
    IpAddress  VARCHAR(255) NULL,
    Method INTEGER NOT NULL,
    Status INTEGER NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_accesslogs_hash ON accesslogs (Hash);
 CREATE INDEX IF NOT EXISTS idx_accesslogs_createdon ON accesslogs (CreatedOn);
+CREATE INDEX IF NOT EXISTS idx_accesslogs_organizationId ON accesslogs (OrganizationId);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS tags USING fts5(
+   Id CHAR(36)  NOT NULL,
+   Name VARCHAR(255) NOT NULL,
+   CreatedOn DATETIME NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS shortlinktags(
+   Id CHAR(36)  NOT NULL PRIMARY KEY,
+   TagId CHAR(36) NOT NULL,
+   Hash VARCHAR(8) NOT NULL,
+   CreatedOn DATETIME NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS payplans(
+   Id CHAR(36)  NOT NULL PRIMARY KEY,
+   Type INTEGER NOT NULL,
+   Amount DOUBLE NOT NULL,
+   CreatedOn DATETIME NOT NULL,
+   ModifiedOn DATETIME NOT NULL,
+   IsLatest BOOLEAN NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS organizationpayplans(
+   Id CHAR(36)  NOT NULL PRIMARY KEY,
+   PayPlanId CHAR(36) NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
+   PayCycle INTEGER NOT NULL,
+   CreatedOn DATETIME NOT NULL,
+   ModifiedOn DATETIME NOT NULL,
+   IsLatest BOOLEAN NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_organizationpayplans_PayPlanId ON organizationpayplans (PayPlanId);
+CREATE INDEX IF NOT EXISTS idx_organizationpayplans_OrganizationId ON organizationpayplans (OrganizationId);
+
+CREATE TABLE IF NOT EXISTS payschedules(
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   OrganizationPayPlanId CHAR(36) NOT NULL,
+   EffectiveDate DATETIME NOT NULL,
+   EndDate DATETIME NOT NULL,
+   CreatedOn DATETIME NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
+   ModifiedOn DATETIME NOT NULL,
+   IsNext BOOLEAN NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_payschedules_OrganizationPayPlanId ON payschedules (OrganizationPayPlanId);
+CREATE INDEX IF NOT EXISTS idx_payschedules_OrganizationId ON payschedules (OrganizationId);
+
+
+CREATE TABLE IF NOT EXISTS revenues(
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   PayScheduleId CHAR(36) NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
+   Amount DOUBLE NOT NULL,
+   StartDate DATETIME NOT NULL,
+   EndDate DATETIME NOT NULL,
+   CreatedOn DATETIME NOT NULL,
+   ModifiedOn DATETIME NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_revenues_OrganizationPayPlanId ON revenues (PayScheduleId);
+CREATE INDEX IF NOT EXISTS idx_revenues_OrganizationId ON revenues (OrganizationId);
 
 COMMIT;
