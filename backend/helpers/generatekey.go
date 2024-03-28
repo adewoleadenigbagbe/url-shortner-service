@@ -43,6 +43,11 @@ func RandStringBytesRmndr(n int) string {
 	return string(b)
 }
 
+func GeneratePassword(text string) string {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(text), bcrypt.DefaultCost)
+	return string(hash)
+}
+
 func IsValidUrl(query string) bool {
 	_, err := url.ParseRequestURI(query)
 	return err == nil

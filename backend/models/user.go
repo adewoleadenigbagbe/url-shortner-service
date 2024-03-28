@@ -3,8 +3,12 @@ package models
 import "github.com/adewoleadenigbagbe/url-shortner-service/enums"
 
 type RegisterUserRequest struct {
-	UserName string `json:"username"`
-	Email    string `json:"email"`
+	UserName    string `json:"username"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	PhoneNumber string `json:"phoneNumber"`
+	Timezone    string `json:"timezone"`
+	Company     string `json:"companyName"`
 }
 
 type RegisterUserResponse struct {
