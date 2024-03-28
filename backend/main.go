@@ -21,5 +21,5 @@ func main() {
 		},
 	}
 
-	server.Serve()
+	server.Start()
 }

@@ -20,7 +20,7 @@ type ApplicationServer struct {
 	AppMiddleWare *middlewares.AppMiddleware
 }
 
-func (server *ApplicationServer) Serve() {
+func (server *ApplicationServer) Start() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
