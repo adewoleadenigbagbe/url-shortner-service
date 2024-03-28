@@ -44,14 +44,23 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 		return authContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
-	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.Administrator)
-	if errors.Is(row.Err(), sql.ErrNoRows) {
-		return authContext.JSON(http.StatusNotFound, []string{"no role found"})
-	}
-
 	var roleId string
+	row := service.Db.QueryRow("SELECT Id FROM userRoles WHERE Role=?", enums.Administrator)
 	err = row.Scan(&roleId)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return authContext.JSON(http.StatusNotFound, []string{"no role found"})
+		}
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	var payPlanId string
+	queryPayPlanRow := service.Db.QueryRow("SELECT Id FROM payplans WHERE Type=?", enums.Free)
+	err = queryPayPlanRow.Scan(&payPlanId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return authContext.JSON(http.StatusNotFound, []string{"payplan does not exist"})
+		}
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
@@ -61,7 +70,6 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	if err != nil {
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
-
 	if count > 0 {
 		return authContext.JSON(http.StatusBadRequest, []string{"company name exist"})
 	}
@@ -75,10 +83,19 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	userid := sequentialguid.NewSequentialGuid().String()
 	organizationId := sequentialguid.NewSequentialGuid().String()
 	organizationCreatedOn := time.Now()
-	_, err = tx.Exec(`INSERT INTO organizations VALUES(?,?,?,?,?,?,?);`,
-		organizationId, request.Company, request.PhoneNumber, userid, organizationCreatedOn,
+	_, err = tx.Exec(`INSERT INTO organizations VALUES(?,?,?,?,?,?,?,?);`,
+		organizationId, request.Company, request.PhoneNumber, request.Timezone, userid, organizationCreatedOn,
 		organizationCreatedOn, false)
 
+	if err != nil {
+		tx.Rollback()
+		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	//organizationpayplan
+	organizationPlanId := sequentialguid.NewSequentialGuid().String()
+	planCreatedOn := time.Now()
+	_, err = tx.Exec("INSERT INTO organizationpayplans VALUES(?,?,?,?,?,?,?);", organizationPlanId, enums.None, payPlanId, organizationId, planCreatedOn, planCreatedOn, true)
 	if err != nil {
 		tx.Rollback()
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
@@ -89,7 +106,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	usercreatedOn := time.Now()
 	_, err = tx.Exec(`INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?,?);`,
 		userid, request.UserName, request.Email, hashedPassword, usercreatedOn,
-		usercreatedOn, usercreatedOn, roleId, organizationId, sql.NullString{}, false)
+		usercreatedOn, usercreatedOn, organizationId, sql.NullString{}, roleId, false)
 	if err != nil {
 		tx.Rollback()
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
@@ -100,7 +117,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	apikey := helpers.GenerateApiKey(request.Email)
 	keyCreatedOn := time.Now()
 	expiryDate := keyCreatedOn.AddDate(expiryYear, 0, 0)
-	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
+	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, organizationId, true)
 	if err != nil {
 		tx.Rollback()
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
@@ -123,6 +140,10 @@ func validateUser(user models.RegisterUserRequest) []error {
 
 	if user.Company == "" {
 		validationErrors = append(validationErrors, errors.New("company name is required"))
+	}
+
+	if user.Timezone == "" {
+		validationErrors = append(validationErrors, errors.New("timezone is required"))
 	}
 
 	isEmailValid, _ := regexp.MatchString(emailRegex, user.Email)
