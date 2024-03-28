@@ -7,3 +7,11 @@ const (
 	Team
 	Enterprise
 )
+
+type PayCycle int
+
+const (
+	None PayCycle = iota
+	Monthly
+	Yearly
+)

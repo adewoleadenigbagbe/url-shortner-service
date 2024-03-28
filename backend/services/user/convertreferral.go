@@ -13,6 +13,7 @@ import (
 	"github.com/samber/lo"
 )
 
+
 func (service UserService) ConvertReferral(userContext echo.Context) error {
 	var err error
 	request := new(models.ConvertReferralRequest)
@@ -30,16 +31,14 @@ func (service UserService) ConvertReferral(userContext echo.Context) error {
 		return userContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
-	row := service.Db.QueryRow("SELECT OrganizationId FROM users WHERE Id=? AND IsDeprecated=?", request.ReferralId, false)
 	var organizationId string
-	err = row.Scan(&organizationId)
+	err = service.Db.QueryRow("SELECT OrganizationId FROM users WHERE Id=? AND IsDeprecated=?", request.ReferralId, false).Scan(&organizationId)
 	if err != nil {
 		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	row2 := service.Db.QueryRow("SELECT RoleId FROM invites WHERE Email=?", request.Email)
 	var roleId string
-	err = row2.Scan(&roleId)
+	err = service.Db.QueryRow("SELECT RoleId FROM invites WHERE Email=?", request.Email).Scan(&roleId)
 	if err != nil {
 		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}

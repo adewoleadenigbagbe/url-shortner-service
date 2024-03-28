@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
@@ -18,6 +19,17 @@ type UserService struct {
 
 func (service UserService) SendEmail(userContext echo.Context) error {
 	var err error
+	organizationId := userContext.Request().Header.Get("X-OrganizationId")
+	userCount, err := GetUserCount(service.Db, organizationId)
+	if err != nil {
+		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	if userCount < models.Team_Plan_User_Limit {
+		respErr := fmt.Sprintf("user limit for this plan : %d", models.Team_Plan_User_Limit)
+		return userContext.JSON(http.StatusBadRequest, []string{respErr})
+	}
+
 	request := new(models.SendEmailRequest)
 	err = userContext.Bind(request)
 	if err != nil {
@@ -75,4 +87,16 @@ func formatInsertStatement(request models.SendEmailRequest) (string, []interface
 	//trim the last ,
 	stmt = stmt[0 : len(stmt)-1]
 	return stmt, vals
+}
+
+func GetUserCount(db *sql.DB, id string) (int, error) {
+	var count int
+	query := `SELECT COUNT(1) FROM organizations 
+		JOIN users ON organizations.Id = users.OrganizationId 
+		WHERE organizations.Id =? AND users.IsDeprecated=? AND organizations.IsDeprecated=?`
+	err := db.QueryRow(query, id, false, false).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"database/sql"
-	"log"
 	"os"
 	"time"
 
@@ -49,7 +48,7 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 
 	_, err = redisClient.Ping(ctx).Result()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	app := &BaseApp{

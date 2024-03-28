@@ -20,8 +20,8 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 
 	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin)
 
-	router.POST("/api/v1/user/send-email", app.UserService.SendEmail, middleware.AuthorizeAdmin)
-	router.POST("/api/v1/user/send-email", app.UserService.ConvertReferral)
+	router.POST("/api/v1/user/send-email", app.UserService.SendEmail, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
+	router.POST("/api/v1/user/convert-referral", app.UserService.ConvertReferral)
 
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
