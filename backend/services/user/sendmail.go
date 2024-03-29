@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
+	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
@@ -20,12 +21,15 @@ type UserService struct {
 func (service UserService) SendEmail(userContext echo.Context) error {
 	var err error
 	organizationId := userContext.Request().Header.Get("X-OrganizationId")
-	userCount, err := GetUserCount(service.Db, organizationId)
+	planType, userCount, err := GetUserCount(service.Db, organizationId)
 	if err != nil {
 		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	if userCount < models.Team_Plan_User_Limit {
+	fmt.Println("type: ", planType)
+	fmt.Println("userCount: ", userCount)
+
+	if planType == enums.Team && userCount >= models.Team_Plan_User_Limit {
 		respErr := fmt.Sprintf("user limit for this plan : %d", models.Team_Plan_User_Limit)
 		return userContext.JSON(http.StatusBadRequest, []string{respErr})
 	}
@@ -80,23 +84,30 @@ func formatInsertStatement(request models.SendEmailRequest) (string, []interface
 	vals := []interface{}{}
 
 	for _, invite := range request.Invites {
-		stmt += "(?, ?, ?),"
+		stmt += "(?,?,?,?,?),"
 		uuid := sequentialguid.NewSequentialGuid().String()
-		vals = append(vals, uuid, invite.Email, request.ReferralId, invite.RoleId)
+		vals = append(vals, uuid, "ade", invite.Email, request.ReferralId, invite.RoleId)
 	}
 	//trim the last ,
 	stmt = stmt[0 : len(stmt)-1]
 	return stmt, vals
 }
 
-func GetUserCount(db *sql.DB, id string) (int, error) {
+func GetUserCount(db *sql.DB, id string) (enums.PayPlan, int, error) {
 	var count int
-	query := `SELECT COUNT(1) FROM organizations 
-		JOIN users ON organizations.Id = users.OrganizationId 
-		WHERE organizations.Id =? AND users.IsDeprecated=? AND organizations.IsDeprecated=?`
-	err := db.QueryRow(query, id, false, false).Scan(&count)
+	var planType enums.PayPlan
+	query := `SELECT payplans.Type, COUNT(users.Id) AS UserCount FROM organizations 
+	JOIN users ON organizations.Id = users.OrganizationId 
+	JOIN organizationpayplans ON organizations.Id = organizationpayplans.OrganizationId
+	JOIN payplans ON organizationpayplans.PayPlanId = payplans.Id
+	WHERE organizations.Id =? 
+	AND users.IsDeprecated=? 
+	AND organizations.IsDeprecated=?
+	AND payplans.IsLatest=?
+	AND organizationpayplans.IsLatest=?`
+	err := db.QueryRow(query, id, false, false, true, true).Scan(&planType, &count)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
-	return count, nil
+	return planType, count, nil
 }

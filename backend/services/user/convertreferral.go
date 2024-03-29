@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"regexp"
@@ -12,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
 )
-
 
 func (service UserService) ConvertReferral(userContext echo.Context) error {
 	var err error
@@ -31,20 +31,20 @@ func (service UserService) ConvertReferral(userContext echo.Context) error {
 		return userContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
-	var organizationId string
-	err = service.Db.QueryRow("SELECT OrganizationId FROM users WHERE Id=? AND IsDeprecated=?", request.ReferralId, false).Scan(&organizationId)
-	if err != nil {
-		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
-	}
-
 	var roleId string
-	err = service.Db.QueryRow("SELECT RoleId FROM invites WHERE Email=?", request.Email).Scan(&roleId)
+	var referralId string
+	err = service.Db.QueryRow("SELECT RoleId,ReferralUserId FROM invites WHERE Email=?", request.Email).Scan(&roleId, &referralId)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return userContext.JSON(http.StatusBadRequest, []string{"invite does not exist"})
+		}
 		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	if len(roleId) == 0 {
-		return userContext.JSON(http.StatusBadRequest, []string{"invite does not exist"})
+	var organizationId string
+	err = service.Db.QueryRow("SELECT OrganizationId FROM users WHERE Id=? AND IsDeprecated=?", referralId, false).Scan(&organizationId)
+	if err != nil {
+		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	tx, err := service.Db.Begin()
@@ -57,7 +57,7 @@ func (service UserService) ConvertReferral(userContext echo.Context) error {
 	usercreatedOn := time.Now()
 	_, err = tx.Exec(`INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?,?);`,
 		userid, request.Username, request.Email, hashedPassword, usercreatedOn,
-		usercreatedOn, usercreatedOn, roleId, organizationId, request.ReferralId, false)
+		usercreatedOn, usercreatedOn, organizationId, referralId, roleId, false)
 	if err != nil {
 		tx.Rollback()
 		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
@@ -68,7 +68,7 @@ func (service UserService) ConvertReferral(userContext echo.Context) error {
 	apikey := helpers.GenerateApiKey(request.Email)
 	keyCreatedOn := time.Now()
 	expiryDate := keyCreatedOn.AddDate(models.ApiExpiry, 0, 0)
-	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, true)
+	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, organizationId, true)
 	if err != nil {
 		tx.Rollback()
 		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
@@ -83,10 +83,6 @@ func validateReferralRequest(request models.ConvertReferralRequest) []error {
 
 	if request.Username == "" {
 		validationErrors = append(validationErrors, errors.New("username is required"))
-	}
-
-	if request.ReferralId == "" {
-		validationErrors = append(validationErrors, errors.New("referralId is required"))
 	}
 
 	if request.Password == "" {

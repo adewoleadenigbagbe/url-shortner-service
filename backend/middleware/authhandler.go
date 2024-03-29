@@ -49,6 +49,15 @@ func (appMiddleware *AppMiddleware) AuthorizeAdmin(next echo.HandlerFunc) echo.H
 			return context.JSON(http.StatusBadRequest, "Invalid Authourization Token")
 		}
 
+		apikey := context.Request().Header.Get("X-Api-Key")
+		if len(apikey) == 0 {
+			return context.JSON(http.StatusBadRequest, "User ApiKey missing in the header")
+		}
+
+		if !isCurrentUser(appMiddleware.Db, id, apikey) {
+			return context.JSON(http.StatusUnauthorized, "invalid api key")
+		}
+
 		return next(context)
 	}
 }

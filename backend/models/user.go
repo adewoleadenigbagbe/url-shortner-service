@@ -43,10 +43,9 @@ type SendEmailRequest struct {
 }
 
 type ConvertReferralRequest struct {
-	Username   string `json:"username"`
-	Email      string `json:"email"`
-	Password   string `json:"password"`
-	ReferralId string `json:"referralId"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type ConvertReferralResponse struct {
