@@ -60,10 +60,10 @@ func (service DomainService) CreateDomain(domainContext echo.Context) error {
 		if planType.Valid {
 			var respErr string
 			if planType.Val == enums.Free && noDomains >= models.Free_Plan_Domain_Limit {
-				respErr = fmt.Sprintf("domain limit for this plan type : %d", models.Free_Plan_Domain_Limit)
+				respErr = fmt.Sprintf("you have exceeded the domain limit for this plan type : %d", models.Free_Plan_Domain_Limit)
 				return domainContext.JSON(http.StatusBadRequest, []string{respErr})
 			} else if planType.Val == enums.Team && noDomains >= models.Team_Plan_Domain_Limit {
-				respErr = fmt.Sprintf("domain limit for this plan type : %d", models.Team_Plan_Domain_Limit)
+				respErr = fmt.Sprintf("you have exceeded the domain limit for this plan type : %d", models.Team_Plan_Domain_Limit)
 				return domainContext.JSON(http.StatusBadRequest, []string{respErr})
 			}
 		}

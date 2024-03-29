@@ -7,10 +7,10 @@ import (
 )
 
 type CreateUrlRequest struct {
-	UserId      string                   `json:"userId"`
-	OriginalUrl string                   `json:"originalurl"`
-	DomainId    string                   `json:"domainId"`
-	CustomAlias helpers.Nullable[string] `json:"alias"`
+	OriginalUrl    string                   `json:"originalurl"`
+	DomainId       string                   `json:"domainId"`
+	CustomAlias    helpers.Nullable[string] `json:"alias"`
+	OrganizationId string                   `header:"X-OrganizationId"`
 }
 
 type CreateUrlResponse struct {

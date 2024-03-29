@@ -14,7 +14,7 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router.POST("/api/v1/auth/sign-in", app.AuthService.LoginUser)
 	router.POST("/api/v1/auth/sign-out", app.AuthService.LogOut)
 
-	router.POST("/api/v1/shortlink", app.UrlService.CreateShortUrl, middleware.AuthorizeUser)
+	router.POST("/api/v1/shortlink", app.UrlService.CreateShortUrl, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
 	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser)
 	router.GET("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
 
