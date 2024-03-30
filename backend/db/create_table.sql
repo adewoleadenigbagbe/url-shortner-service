@@ -86,17 +86,18 @@ CREATE INDEX IF NOT EXISTS idx_domains_createdById on domains (CreatedById);
 
 -- SHORTLINKS
 CREATE TABLE IF NOT EXISTS shortlinks(
-   Hash VARCHAR(8) PRIMARY KEY NOT NULL,
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   Hash VARCHAR(8) NOT NULL,
    OriginalUrl VARCHAR(255) NOT NULL,
    DomainId CHAR(36) NOT NULL,
    Alias VARCHAR(10) NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    ExpirationDate DATETIME NOT NULL,
-   OrganizationId CHAR(36) NULL,
+   OrganizationId CHAR(36) NOT NULL,
+   CreatedById CHAR(36) NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS idx_shortlinks_original_url ON shortlinks (OriginalUrl);
 CREATE INDEX IF NOT EXISTS idx_shortlinks_organizationId ON shortlinks (OrganizationId);
 CREATE INDEX IF NOT EXISTS idx_shortlinks_domainId ON shortlinks (DomainId);
 
@@ -112,8 +113,7 @@ CREATE TABLE IF NOT EXISTS unusedshortlinks(
 -- CLICK LOGS
 CREATE TABLE IF NOT EXISTS accesslogs(
    Id CHAR(36)  NOT NULL PRIMARY KEY,
-   Hash VARCHAR(8) NOT NULL,
-   CreatedOn DATETIME NOT NULL,
+   ShortId CHAR(36) NOT NULL,
    Country VARCHAR(50) NULL,
    TimeZone  VARCHAR(50) NULL,
    City VARCHAR(50) NULL,
@@ -125,9 +125,10 @@ CREATE TABLE IF NOT EXISTS accesslogs(
    Method INTEGER NOT NULL,
    Status INTEGER NOT NULL,
    OrganizationId CHAR(36) NOT NULL,
+   CreatedOn DATETIME NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_accesslogs_hash ON accesslogs (Hash);
+CREATE INDEX IF NOT EXISTS idx_accesslogs_shortId ON accesslogs (ShortId);
 CREATE INDEX IF NOT EXISTS idx_accesslogs_createdon ON accesslogs (CreatedOn);
 CREATE INDEX IF NOT EXISTS idx_accesslogs_organizationId ON accesslogs (OrganizationId);
 
@@ -135,11 +136,11 @@ CREATE VIRTUAL TABLE IF NOT EXISTS tags USING fts4(Id,Name,CreatedOn);
 
 CREATE TABLE IF NOT EXISTS shortlinktags(
    Id CHAR(36)  NOT NULL PRIMARY KEY,
-   Hash VARCHAR(8) NOT NULL,
+   ShortId CHAR(36) NOT NULL,
    TagId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_shortlinktags_hash ON shortlinktags (Hash);
+CREATE INDEX IF NOT EXISTS idx_shortlinktags_shortId ON shortlinktags (ShortId);
 CREATE INDEX IF NOT EXISTS idx_shortlinktags_tagId ON shortlinktags (TagId);
 
 -- PLANS & PAYMENTS
