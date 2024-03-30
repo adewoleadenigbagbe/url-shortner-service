@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
+	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
 )
@@ -22,28 +24,24 @@ func (service UrlService) RedirectShort(urlContext echo.Context) error {
 	}
 
 	var originalUrl string
-	var hits int64
-	query := `SELECT shortlinks.OriginalUrl, shortlinks.Hits FROM shortlinks JOIN domains ON shortlinks.DomainId = domains.Id 
-	 WHERE shortlinks.Hash=? AND shortlinks.IsDeprecated=? AND domains.IsDeprecated=?`
+	query := `SELECT shortlinks.OriginalUrl
+				FROM shortlinks JOIN domains ON shortlinks.DomainId = domains.Id 
+				WHERE shortlinks.Hash=? AND shortlinks.IsDeprecated=? AND domains.IsDeprecated=?`
 	row := service.Db.QueryRow(query, request.ShortUrl, false, false)
-	if err = row.Scan(&originalUrl, &hits); errors.Is(err, sql.ErrNoRows) {
+	if err = row.Scan(&originalUrl); errors.Is(err, sql.ErrNoRows) {
 		return urlContext.JSON(http.StatusNotFound, []string{err.Error()})
 	}
 
-	//access the logs information
-	tx, err := service.Db.Begin()
+	id := sequentialguid.NewSequentialGuid().String()
+	createdOn := time.Now()
+	_, err = service.Db.Exec("INSERT INTO accesslogs VALUES(?,?,?,?,?,?,?,?,?,?,?);",
+		id, request.ShortUrl, createdOn, request.Country, request.TimeZone,
+		request.City, request.Os, request.Browser, request.UserAgent, request.Platform,
+		request.IpAddress, request.Method, request.Status, request.OrganizationId, false)
+
 	if err != nil {
 		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
-
-	_, err = tx.Exec("UPDATE shortlinks SET Hits =? WHERE Hash =?", hits+1, request.ShortUrl)
-	if err != nil {
-		tx.Rollback()
-		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
-	}
-
-	//create accesslogs
-	tx.Commit()
 
 	urlContext.Response().Header().Set("Location", originalUrl)
 	return urlContext.JSON(http.StatusFound, nil)

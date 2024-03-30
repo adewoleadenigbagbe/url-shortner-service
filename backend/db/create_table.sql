@@ -92,7 +92,8 @@ CREATE TABLE IF NOT EXISTS shortlinks(
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
    ExpirationDate DATETIME NOT NULL,
-   OrganizationId CHAR(36) NULL,
+   OrganizationId CHAR(36) NOT NULL,
+   CreatedById CHAR(36) NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_shortlinks_original_url ON shortlinks (OriginalUrl);
