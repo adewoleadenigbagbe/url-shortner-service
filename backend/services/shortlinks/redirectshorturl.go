@@ -34,10 +34,10 @@ func (service UrlService) RedirectShort(urlContext echo.Context) error {
 
 	id := sequentialguid.NewSequentialGuid().String()
 	createdOn := time.Now()
-	_, err = service.Db.Exec("INSERT INTO accesslogs VALUES(?,?,?,?,?,?,?,?,?,?,?);",
-		id, request.ShortUrl, createdOn, request.Country, request.TimeZone,
-		request.City, request.Os, request.Browser, request.UserAgent, request.Platform,
-		request.IpAddress, request.Method, request.Status, request.OrganizationId, false)
+	_, err = service.Db.Exec("INSERT INTO accesslogs VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+		id, request.ShortUrl, request.Country, request.TimeZone, request.City,
+		request.Os, request.Browser, request.UserAgent, request.Platform,
+		request.IpAddress, request.Method, request.Status, request.OrganizationId, createdOn, false)
 
 	if err != nil {
 		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
