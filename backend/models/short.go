@@ -15,6 +15,7 @@ type CreateUrlRequest struct {
 }
 
 type CreateUrlResponse struct {
+	Id       string `json:"id"`
 	ShortUrl string `json:"shortlink"`
 	DomainId string `json:"domainId"`
 }
@@ -24,7 +25,7 @@ type DeleteUrlRequest struct {
 }
 
 type RedirectShortRequest struct {
-	ShortUrl       string                   `json:"shorturl"`
+	ShortUrl       string                   `json:"shortUrl"`
 	Country        helpers.Nullable[string] `json:"country"`
 	TimeZone       helpers.Nullable[string] `json:"timezone"`
 	City           helpers.Nullable[string] `json:"city"`
@@ -34,8 +35,8 @@ type RedirectShortRequest struct {
 	Platform       helpers.Nullable[string] `json:"platform"`
 	IpAddress      helpers.Nullable[string] `json:"ipAddress"`
 	Method         helpers.Nullable[string] `json:"method"`
-	Status         helpers.Nullable[string] `json:"status"`
-	OrganizationId string                   `header:"X-OrganizationId"`
+	Status         helpers.Nullable[int]    `json:"status"`
+	OrganizationId string                   `json:"organizationId"`
 }
 
 type GetShortRequest struct {
