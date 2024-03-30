@@ -122,8 +122,8 @@ CREATE TABLE IF NOT EXISTS accesslogs(
    UserAgent  VARCHAR(50) NULL,
    Platform  VARCHAR(50) NULL,
    IpAddress  VARCHAR(255) NULL,
-   Method INTEGER NOT NULL,
-   Status INTEGER NOT NULL,
+   Method VARCHAR(50) NULL,
+   Status INTEGER NULL,
    OrganizationId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
