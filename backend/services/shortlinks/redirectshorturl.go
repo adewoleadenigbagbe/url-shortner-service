@@ -29,7 +29,7 @@ func (service UrlService) RedirectShort(urlContext echo.Context) error {
 				WHERE shortlinks.Hash=? AND shortlinks.IsDeprecated=? AND domains.IsDeprecated=?`
 	row := service.Db.QueryRow(query, request.ShortUrl, false, false)
 	if err = row.Scan(&originalUrl); errors.Is(err, sql.ErrNoRows) {
-		return urlContext.JSON(http.StatusNotFound, []string{err.Error()})
+		return urlContext.JSON(http.StatusNotFound, []string{"link does not exist"})
 	}
 
 	id := sequentialguid.NewSequentialGuid().String()
