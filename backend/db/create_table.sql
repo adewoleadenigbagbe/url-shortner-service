@@ -52,7 +52,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_organizations_ownerId on organizations (Ow
 
 CREATE TABLE IF NOT EXISTS invites(
    Id CHAR(36) NOT NULL PRIMARY KEY,
-   UserName VARCHAR(255) NOT NULL,
    Email VARCHAR(50) NOT NULL,
    ReferralUserId CHAR(36) NOT NULL,
    RoleId CHAR(36) NOT NULL

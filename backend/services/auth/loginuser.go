@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
-	jwtauth "github.com/adewoleadenigbagbe/url-shortner-service/helpers/auth"
+	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
 )
@@ -42,10 +43,12 @@ func (service AuthService) LoginUser(authContext echo.Context) error {
 
 	request.Id = id
 	request.Role = role
-	token, err := jwtauth.GenerateJWT(*request)
+	token, err := helpers.GenerateJWT(request.Id, request.Role, request.Email)
 	if err != nil {
 		return authContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
+	now := time.Now()
+	service.Db.Exec("UPDATE users SET LastLogin =? , ModifiedOn=? WHERE Id=?", now, now, id)
 	return authContext.JSON(http.StatusOK, models.SignInUserResponse{Token: token, Id: id, ApiKey: apikey})
 }

@@ -16,12 +16,6 @@ import (
 	"github.com/samber/lo"
 )
 
-const (
-	expiryYear       = 1
-	emailRegex       = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
-	PhoneNumberRegex = "\\+[1-9]{1}[0-9]{0,2}-[2-9]{1}[0-9]{2}-[2-9]{1}[0-9]{2}-[0-9]{4}$"
-)
-
 type AuthService struct {
 	Db  *sql.DB
 	Rdb *redis.Client
@@ -92,7 +86,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	//organizationpayplan
+	//organization payplan
 	organizationPlanId := sequentialguid.NewSequentialGuid().String()
 	planCreatedOn := time.Now()
 	_, err = tx.Exec("INSERT INTO organizationpayplans VALUES(?,?,?,?,?,?,?);", organizationPlanId, enums.None, payPlanId, organizationId, planCreatedOn, planCreatedOn, true)
@@ -101,7 +95,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	//create user
+	//user
 	hashedPassword := helpers.GeneratePassword(request.Password)
 	usercreatedOn := time.Now()
 	_, err = tx.Exec(`INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?,?);`,
@@ -112,11 +106,11 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	//create userkeys
+	//userkeys
 	userKeyId := sequentialguid.NewSequentialGuid().String()
 	apikey := helpers.GenerateApiKey(request.Email)
 	keyCreatedOn := time.Now()
-	expiryDate := keyCreatedOn.AddDate(expiryYear, 0, 0)
+	expiryDate := keyCreatedOn.AddDate(models.ApiExpiry, 0, 0)
 	_, err = tx.Exec("INSERT INTO userkeys VALUES(?,?,?,?,?,?,?,?);", userKeyId, apikey, keyCreatedOn, keyCreatedOn, expiryDate, userid, organizationId, true)
 	if err != nil {
 		tx.Rollback()
@@ -146,12 +140,12 @@ func validateUser(user models.RegisterUserRequest) []error {
 		validationErrors = append(validationErrors, errors.New("timezone is required"))
 	}
 
-	isEmailValid, _ := regexp.MatchString(emailRegex, user.Email)
+	isEmailValid, _ := regexp.MatchString(models.EmailRegex, user.Email)
 	if !isEmailValid {
 		validationErrors = append(validationErrors, errors.New("email is invalid"))
 	}
 
-	isPhoneValid, _ := regexp.MatchString(PhoneNumberRegex, user.PhoneNumber)
+	isPhoneValid, _ := regexp.MatchString(models.PhoneNumberRegex, user.PhoneNumber)
 	if !isPhoneValid {
 		validationErrors = append(validationErrors, errors.New("phone number is invalid"))
 	}
