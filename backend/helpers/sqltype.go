@@ -44,6 +44,14 @@ func (n Nullable[T]) Value() (driver.Value, error) {
 	if !n.Valid {
 		return nil, nil
 	}
+
+	switch reflect.TypeOf(n.Val).Kind() {
+	case reflect.Int:
+		return reflect.ValueOf(n.Val).Int(), nil
+	case reflect.Float32, reflect.Float64:
+		return reflect.ValueOf(n.Val).Float(), nil
+	}
+
 	return n.Val, nil
 }
 

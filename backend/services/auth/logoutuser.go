@@ -3,7 +3,7 @@ package services
 import (
 	"net/http"
 
-	jwtauth "github.com/adewoleadenigbagbe/url-shortner-service/helpers/auth"
+	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
@@ -15,7 +15,7 @@ func (service AuthService) LogOut(authContext echo.Context) error {
 	request := new(models.SignOutUserRequest)
 	authContext.Bind(request)
 
-	token := jwtauth.GetTokenFromRequest(authContext)
+	token := helpers.GetTokenFromRequest(authContext)
 	ctx := authContext.Request().Context()
 
 	_, err = service.Rdb.Get(ctx, request.UserId).Result()

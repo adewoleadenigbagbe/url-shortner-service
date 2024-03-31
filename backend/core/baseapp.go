@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"database/sql"
-	"log"
 	"os"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	auth "github.com/adewoleadenigbagbe/url-shortner-service/services/auth"
 	domain "github.com/adewoleadenigbagbe/url-shortner-service/services/domain"
 	link "github.com/adewoleadenigbagbe/url-shortner-service/services/shortlinks"
+	user "github.com/adewoleadenigbagbe/url-shortner-service/services/user"
 	teams "github.com/adewoleadenigbagbe/url-shortner-service/services/teams"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
@@ -27,6 +27,7 @@ type BaseApp struct {
 	AuthService   auth.AuthService
 	UrlService    link.UrlService
 	DomainService domain.DomainService
+	UserService   user.UserService
 	TeamService   teams.TeamService
 }
 
@@ -49,7 +50,7 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 
 	_, err = redisClient.Ping(ctx).Result()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	app := &BaseApp{
@@ -64,6 +65,9 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 			Db: db,
 		},
 		DomainService: domain.DomainService{
+			Db: db,
+		},
+		UserService: user.UserService{
 			Db: db,
 		},
 		TeamService: teams.TeamService{
