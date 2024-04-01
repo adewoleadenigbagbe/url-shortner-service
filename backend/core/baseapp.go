@@ -11,6 +11,7 @@ import (
 	domain "github.com/adewoleadenigbagbe/url-shortner-service/services/domain"
 	link "github.com/adewoleadenigbagbe/url-shortner-service/services/shortlinks"
 	user "github.com/adewoleadenigbagbe/url-shortner-service/services/user"
+	teams "github.com/adewoleadenigbagbe/url-shortner-service/services/teams"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
 )
@@ -27,6 +28,7 @@ type BaseApp struct {
 	UrlService    link.UrlService
 	DomainService domain.DomainService
 	UserService   user.UserService
+	TeamService   teams.TeamService
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
@@ -66,6 +68,9 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 			Db: db,
 		},
 		UserService: user.UserService{
+			Db: db,
+		},
+		TeamService: teams.TeamService{
 			Db: db,
 		},
 	}
