@@ -16,27 +16,24 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router.POST("/api/v1/auth/sign-in", app.AuthService.LoginUser)
 	router.POST("/api/v1/auth/sign-out", app.AuthService.LogOut)
 
-	//shortlinks
+	//Shortlinks
 	router.POST("/api/v1/shortlink", app.UrlService.CreateShortLink, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
 	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser)
 	router.POST("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
 
-	//domains
-
-	//domains
+	//Domains
 	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
 
-	//users
+	//Users
 	router.POST("/api/v1/user/send-email", app.UserService.SendEmail, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 	router.POST("/api/v1/user/convert-referral", app.UserService.ConvertReferral)
 
-	//teams
+	//Teams
 	router.POST("/api/v1/teams", app.TeamService.AddTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 	router.POST("/api/v1/teams/add-user", app.TeamService.AddUserToTeam, middleware.AuthorizeAdmin)
 	router.GET("/api/v1/teams/search", app.TeamService.SearchTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 
-
-	//tags
+	//Tags
 	router.POST("/api/v1/tags", app.TagService.CreateTag, middleware.AuthorizeAdmin)
 	router.POST("/api/v1/tags/add-tag-short", app.TagService.AddShortLinkTag, middleware.AuthorizeAdmin)
 
