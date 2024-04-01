@@ -86,7 +86,6 @@ func validateAddTeamRequest(request models.CreateTeamRequest) []error {
 	return validationErrors
 }
 
-// SELECT Name FROM teams WHERE Name IN (?,?,?) AND OrganizationId =? AND IsDeprecated = false
 func formatQuery(request models.CreateTeamRequest) (string, []interface{}) {
 	str := "SELECT Name FROM teams WHERE Name IN (?" + strings.Repeat(",?", len(request.Teams)-1) + ") AND OrganizationId =? AND IsDeprecated =?"
 	vals := []interface{}{}

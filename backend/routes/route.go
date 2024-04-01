@@ -31,6 +31,7 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	//teams
 	router.POST("/api/v1/teams", app.TeamService.AddTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 	router.POST("/api/v1/teams/add-user", app.TeamService.AddUserToTeam, middleware.AuthorizeAdmin)
+	router.GET("/api/v1/teams/search", app.TeamService.SearchTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")

@@ -17,3 +17,17 @@ type CreateUserTeamRequest struct {
 type CreateUserTeamResponse struct {
 	Id string `json:"id"`
 }
+
+type SearchTeamRequest struct {
+	Term           string `query:"term"`
+	OrganizationId string `header:"X-OrganizationId"`
+}
+
+type SearchTeamResponse struct {
+	Teams []TeamDTO `json:"teams"`
+}
+
+type TeamDTO struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
