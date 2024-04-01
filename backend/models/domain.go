@@ -1,8 +1,10 @@
 package models
 
 type CreateDomainRequest struct {
-	Name   string `json:"domain"`
-	UserId string `json:"userId"`
+	Name           string `json:"domain"`
+	UserId         string `json:"userId"`
+	IsCustom       bool   `json:"isCustom"`
+	OrganizationId string `header:"X-OrganizationId"`
 }
 
 type CreateDomainResponse struct {

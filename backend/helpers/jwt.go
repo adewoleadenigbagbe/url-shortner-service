@@ -1,4 +1,4 @@
-package jwtauth
+package helpers
 
 import (
 	"errors"
@@ -9,18 +9,17 @@ import (
 	"time"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
-	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
 // generate JWT token
-func GenerateJWT(user models.SignInUserRequest) (string, error) {
+func GenerateJWT(id string, role enums.Role, email string) (string, error) {
 	tokenTTL, _ := strconv.Atoi(os.Getenv("TOKEN_TTL"))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    user.Id,
-		"role":  user.Role,
-		"email": user.Email,
+		"id":    id,
+		"role":  role,
+		"email": email,
 		"exp":   time.Now().Add(time.Second * time.Duration(tokenTTL)).Unix(),
 		"iat":   time.Now().Unix(),
 		"eat":   time.Now().Add(time.Second * time.Duration(tokenTTL)).Unix(),
