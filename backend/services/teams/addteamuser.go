@@ -26,6 +26,17 @@ func (service TeamService) AddUserToTeam(teamContext echo.Context) error {
 		return teamContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
+	var count int
+	row := service.Db.QueryRow("SELECT COUNT(1) FROM teamusers WHERE TeamId =? AND UserId =?", request.TeamId, request.UserId)
+	err = row.Scan(&count)
+	if err != nil {
+		return teamContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	if count > 0 {
+		return teamContext.JSON(http.StatusBadRequest, []string{"user already exist in the team"})
+	}
+
 	id := sequentialguid.NewSequentialGuid().String()
 	_, err = service.Db.Exec("INSERT INTO teamusers VALUES(?,?,?);", id, request.TeamId, request.UserId)
 	if err != nil {

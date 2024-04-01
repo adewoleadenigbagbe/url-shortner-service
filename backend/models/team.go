@@ -1,8 +1,8 @@
 package models
 
 type CreateTeamRequest struct {
-	Name           string `json:"name"`
-	OrganizationId string `json:"organizationId"`
+	Teams          []string `json:"teams"`
+	OrganizationId string   `header:"X-OrganizationId"`
 }
 
 type CreateTeamResponse struct {

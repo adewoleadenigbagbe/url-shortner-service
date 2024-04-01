@@ -10,21 +10,26 @@ import (
 
 func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router := app.Echo
+
+	//Auth
 	router.POST("/api/v1/auth/register", app.AuthService.RegisterUser)
 	router.POST("/api/v1/auth/sign-in", app.AuthService.LoginUser)
 	router.POST("/api/v1/auth/sign-out", app.AuthService.LogOut)
 
+	//shortlinks
 	router.POST("/api/v1/shortlink", app.UrlService.CreateShortLink, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
 	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser)
 	router.POST("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
 
+	//domains
 	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
 
+	//users
 	router.POST("/api/v1/user/send-email", app.UserService.SendEmail, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 	router.POST("/api/v1/user/convert-referral", app.UserService.ConvertReferral)
 
-
-	router.POST("/api/v1/teams", app.TeamService.AddTeam, middleware.AuthorizeAdmin)
+	//teams
+	router.POST("/api/v1/teams", app.TeamService.AddTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 	router.POST("/api/v1/teams/add-user", app.TeamService.AddUserToTeam, middleware.AuthorizeAdmin)
 
 	router.GET("/", func(c echo.Context) error {
