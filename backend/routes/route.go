@@ -36,6 +36,7 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	//Tags
 	router.POST("/api/v1/tags", app.TagService.CreateTag, middleware.AuthorizeAdmin)
 	router.POST("/api/v1/tags/add-tag-short", app.TagService.AddShortLinkTag, middleware.AuthorizeAdmin)
+	router.GET("/api/v1/tags/search", app.TagService.SearchTag)
 
 	//default path
 	router.GET("/", func(c echo.Context) error {

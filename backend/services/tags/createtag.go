@@ -3,8 +3,8 @@ package services
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
@@ -17,8 +17,16 @@ type TagService struct {
 	Db *sql.DB
 }
 
+type tagInfo struct {
+	Id   string
+	Name string
+}
+
 func (service TagService) CreateTag(tagContext echo.Context) error {
-	var err error
+	var (
+		err error
+	)
+
 	request := new(models.CreateTagRequest)
 	err = tagContext.Bind(request)
 	if err != nil {
@@ -33,51 +41,80 @@ func (service TagService) CreateTag(tagContext echo.Context) error {
 		return tagContext.JSON(http.StatusBadRequest, valErrors)
 	}
 
-	var count int
-	row := service.Db.QueryRow("SELECT COUNT(1) FROM tags WHERE tags =?", request.Name)
-	err = row.Scan(&count)
+	request.Tags = lo.Map(request.Tags, func(tag string, index int) string {
+		return strings.ToLower(tag)
+	})
+
+	queryStr, args := formatTagQuery(request.Tags)
+	rows, err := service.Db.Query(queryStr, args...)
 	if err != nil {
 		return tagContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	fmt.Println("count :", count)
-	if count > 0 {
-		return tagContext.JSON(http.StatusBadRequest, []string{"tag name already exist"})
+	defer rows.Close()
+
+	var existingTagInfos []tagInfo
+	for rows.Next() {
+		var tag tagInfo
+		err = rows.Scan(&tag.Id, &tag.Name)
+		if err != nil {
+			return tagContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+		}
+		existingTagInfos = append(existingTagInfos, tag)
 	}
 
-	tx, err := service.Db.Begin()
-	if err != nil {
-		return tagContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	if len(existingTagInfos) > 0 {
+		existingTags := lo.Map(existingTagInfos, func(tag tagInfo, index int) string {
+			return tag.Name
+		})
+		request.Tags, _ = lo.Difference(request.Tags, existingTags)
 	}
 
-	tagId := sequentialguid.NewSequentialGuid().String()
-	tagCreatedOn := time.Now()
-	_, err = service.Db.Exec("INSERT INTO tags VALUES(?,?,?);", tagId, request.Name, tagCreatedOn)
-	if err != nil {
-		tx.Rollback()
-		return tagContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	if len(request.Tags) > 0 {
+		tagInfos := lo.Map(request.Tags, func(tag string, index int) tagInfo {
+			return tagInfo{
+				Id:   sequentialguid.NewSequentialGuid().String(),
+				Name: tag,
+			}
+		})
+
+		stmt, args := insertTagStmt(tagInfos)
+		_, err = service.Db.Exec(stmt, args...)
+		if err != nil {
+			return tagContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+		}
 	}
 
-	shortlinktagId := sequentialguid.NewSequentialGuid().String()
-	linktagCreatedOn := time.Now()
-	_, err = service.Db.Exec("INSERT INTO shortlinktags VALUES(?,?,?,?);", shortlinktagId, request.Short, tagId, linktagCreatedOn)
-	if err != nil {
-		tx.Rollback()
-		return tagContext.JSON(http.StatusInternalServerError, []string{err.Error()})
-	}
-
-	tx.Commit()
-	return tagContext.JSON(http.StatusCreated, models.CreateTagResponse{Id: tagId})
+	return tagContext.JSON(http.StatusCreated, nil)
 }
 
 func validateTagRequest(request models.CreateTagRequest) []error {
 	var validationErrors []error
-	if request.Short == "" {
-		validationErrors = append(validationErrors, errors.New("shortlink is required"))
-	}
 
-	if request.Name == "" {
-		validationErrors = append(validationErrors, errors.New("name is required"))
+	if len(request.Tags) == 0 {
+		validationErrors = append(validationErrors, errors.New("tags is required. supply at least one"))
 	}
 	return validationErrors
+}
+
+func formatTagQuery(tags []string) (string, []interface{}) {
+	str := "SELECT Id, Name FROM tags WHERE Name IN (?" + strings.Repeat(",?", len(tags)-1) + ")"
+	vals := []interface{}{}
+	for _, tag := range tags {
+		vals = append(vals, tag)
+	}
+	return str, vals
+}
+
+func insertTagStmt(tags []tagInfo) (string, []interface{}) {
+	stmt := "INSERT INTO tags VALUES "
+	vals := []interface{}{}
+	for _, tag := range tags {
+		stmt += "(?,?,?),"
+		now := time.Now()
+		vals = append(vals, tag.Id, tag.Name, now)
+	}
+	//trim the last ,
+	stmt = stmt[0 : len(stmt)-1]
+	return stmt, vals
 }

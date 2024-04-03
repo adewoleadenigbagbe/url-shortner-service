@@ -26,9 +26,6 @@ func (service UserService) SendEmail(userContext echo.Context) error {
 		return userContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	fmt.Println("type: ", planType)
-	fmt.Println("userCount: ", userCount)
-
 	if planType == enums.Team && userCount >= models.Team_Plan_User_Limit {
 		respErr := fmt.Sprintf("user limit for this plan : %d", models.Team_Plan_User_Limit)
 		return userContext.JSON(http.StatusBadRequest, []string{respErr})

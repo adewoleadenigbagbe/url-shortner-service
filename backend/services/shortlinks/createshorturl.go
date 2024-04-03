@@ -56,10 +56,6 @@ func (service UrlService) CreateShortLink(urlContext echo.Context) error {
 	}
 
 	planType, linkCount, err := GetLinkCount(service.Db, request.OrganizationId)
-	fmt.Println("plantype :", planType)
-	fmt.Println("linkCount :", linkCount)
-	fmt.Println("err :", err)
-
 	if err != nil {
 		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
