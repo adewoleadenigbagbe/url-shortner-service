@@ -38,9 +38,9 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 	SELECT shortlinks.Hash,shortlinks.OriginalUrl,domains.Name, shortlinks.Alias, shortlinks.CreatedOn, 
 	shortlinks.ExpirationDate FROM shortlinks 
 	JOIN domains on shortlinks.DomainId = domains.Id
-	WHERE shortlinks.UserId = %q AND shortlinks.IsDeprecated = %t AND domains.IsDeprecated = %t
+	WHERE shortlinks.OrganizationId = %s AND shortlinks.IsDeprecated = %t AND domains.IsDeprecated = %t
 	ORDER BY %s LIMIT %d OFFSET %d`,
-		request.UserId, false, false, sortAndOrder, request.PageLength, offset)
+		request.OrganizationId, false, false, sortAndOrder, request.PageLength, offset)
 
 	rows, err := urlService.Db.Query(query)
 	if err != nil {
@@ -58,11 +58,8 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 		shorts = append(shorts, short)
 	}
 
-	query2 := `SELECT COUNT(1) FROM shortlinks WHERE userId =? AND IsDeprecated=?`
-	row := urlService.Db.QueryRow(query2, request.UserId, false)
-	if row.Err() != nil {
-		return urlContext.JSON(http.StatusInternalServerError, []string{row.Err().Error()})
-	}
+	query2 := `SELECT COUNT(1) FROM shortlinks WHERE OrganizationId =? AND IsDeprecated=?`
+	row := urlService.Db.QueryRow(query2, request.OrganizationId, false)
 
 	var count int
 	err = row.Scan(&count)
@@ -79,7 +76,6 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 			Alias:          short.Alias,
 			CreatedOn:      short.CreatedOn,
 			ExpirationDate: short.ExpirationDate,
-			UserId:         request.UserId,
 		}
 		shortDatas = append(shortDatas, data)
 	}

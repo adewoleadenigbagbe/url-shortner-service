@@ -40,11 +40,11 @@ type RedirectShortRequest struct {
 }
 
 type GetShortRequest struct {
-	UserId     string `json:"userId"`
-	Page       int    `query:"page"`
-	PageLength int    `query:"pageLength"`
-	SortBy     string `query:"sortBy"`
-	Order      string `query:"order"`
+	OrganizationId string `header:"X-OrganizationId"`
+	Page           int    `query:"page"`
+	PageLength     int    `query:"pageLength"`
+	SortBy         string `query:"sortBy"`
+	Order          string `query:"order"`
 }
 
 type GetShortResponse struct {
@@ -62,5 +62,4 @@ type GetShortData struct {
 	Alias          helpers.Nullable[string] `json:"alias"`
 	CreatedOn      time.Time                `json:"createdOn"`
 	ExpirationDate time.Time                `json:"expiryDate"`
-	UserId         string                   `json:"userId"`
 }

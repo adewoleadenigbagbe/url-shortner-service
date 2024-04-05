@@ -5,9 +5,9 @@ import (
 	"errors"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/samber/lo"
+	"github.com/xuri/excelize/v2"
 )
 
 type BulkLinkData struct {
@@ -25,19 +25,28 @@ type IFileReader interface {
 }
 
 type ExcelReader struct {
-	rc io.ReadCloser
+	rc io.Reader
 }
 
-func (tReader *ExcelReader) ReadFile() ([]BulkLinkData, error) {
-	defer tReader.rc.Close()
-	var text []string
-	datas := lo.Map(text, func(line string, index int) BulkLinkData {
-		record := strings.Split(line, ",")
-		cloak, _ := strconv.ParseBool(record[3])
+func (excelReader *ExcelReader) ReadFile() ([]BulkLinkData, error) {
+	file, err := excelize.OpenReader(excelReader.rc)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := file.GetRows("Sheet1")
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	datas := lo.Map(rows, func(row []string, _ int) BulkLinkData {
+		cloak, _ := strconv.ParseBool(row[3])
 		return BulkLinkData{
-			OriginalUrl: record[0],
-			Alias:       record[1],
-			Domain:      record[2],
+			OriginalUrl: row[0],
+			Alias:       row[1],
+			Domain:      row[2],
 			Cloaking:    cloak,
 		}
 	})
@@ -53,18 +62,18 @@ func (csvReader *CsvReader) ReadFile() ([]BulkLinkData, error) {
 	defer csvReader.rc.Close()
 	reader := csv.NewReader(csvReader.rc)
 
-	records, err := reader.ReadAll()
+	rows, err := reader.ReadAll()
 
 	if err != nil {
 		return nil, err
 	}
 
-	datas := lo.Map(records, func(record []string, index int) BulkLinkData {
-		cloak, _ := strconv.ParseBool(record[3])
+	datas := lo.Map(rows, func(row []string, _ int) BulkLinkData {
+		cloak, _ := strconv.ParseBool(row[3])
 		return BulkLinkData{
-			OriginalUrl: record[0],
-			Alias:       record[1],
-			Domain:      record[2],
+			OriginalUrl: row[0],
+			Alias:       row[1],
+			Domain:      row[2],
 			Cloaking:    cloak,
 		}
 	})
