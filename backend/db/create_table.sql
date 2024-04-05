@@ -60,7 +60,15 @@ CREATE TABLE IF NOT EXISTS invites(
 CREATE INDEX IF NOT EXISTS idx_invites_email on invites(Email);
 
 -- TEAMS
-CREATE VIRTUAL TABLE IF NOT EXISTS teams USING fts4(Id,Name,OrganizationId,IsDeprecated);
+CREATE TABLE IF NOT EXISTS teams(
+   Id CHAR(36) NOT NULL PRIMARY KEY,
+   Name VARCHAR(255) NOT NULL,
+   OrganizationId CHAR(36) NOT NULL,
+   IsDeprecated BOOLEAN NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_teams_name on teams (Name);
+CREATE INDEX IF NOT EXISTS idx_teams_organizationId on teams (OrganizationId);
+
 
 CREATE TABLE IF NOT EXISTS teamusers(
    Id CHAR(36) NOT NULL PRIMARY KEY,
@@ -96,6 +104,7 @@ CREATE TABLE IF NOT EXISTS shortlinks(
    ExpirationDate DATETIME NOT NULL,
    OrganizationId CHAR(36) NOT NULL,
    CreatedById CHAR(36) NOT NULL,
+   Cloaking BOOLEAN NOT NULL,
    IsDeprecated BOOLEAN NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_shortlinks_organizationId ON shortlinks (OrganizationId);
@@ -132,7 +141,12 @@ CREATE INDEX IF NOT EXISTS idx_accesslogs_shortId ON accesslogs (ShortId);
 CREATE INDEX IF NOT EXISTS idx_accesslogs_createdon ON accesslogs (CreatedOn);
 CREATE INDEX IF NOT EXISTS idx_accesslogs_organizationId ON accesslogs (OrganizationId);
 
-CREATE VIRTUAL TABLE IF NOT EXISTS tags USING fts4(Id,Name,CreatedOn);
+CREATE TABLE IF NOT EXISTS tags(
+   Id CHAR(36)  NOT NULL PRIMARY KEY,
+   Name VARCHAR(255) NOT NULL,
+   CreatedOn DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_name on tags (Name);
 
 CREATE TABLE IF NOT EXISTS shortlinktags(
    Id CHAR(36)  NOT NULL PRIMARY KEY,
