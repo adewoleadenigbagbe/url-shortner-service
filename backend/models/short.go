@@ -11,6 +11,7 @@ type CreateUrlRequest struct {
 	DomainId       string                   `json:"domainId"`
 	CustomAlias    helpers.Nullable[string] `json:"alias"`
 	UserId         string                   `json:"userId"`
+	Cloaking       bool                     `json:"cloaking"`
 	OrganizationId string                   `header:"X-OrganizationId"`
 }
 
