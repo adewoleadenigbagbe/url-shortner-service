@@ -7,13 +7,15 @@ import (
 )
 
 type CreateUrlRequest struct {
-	UserId      string                   `json:"userId"`
-	OriginalUrl string                   `json:"originalurl"`
-	DomainId    string                   `json:"domainId"`
-	CustomAlias helpers.Nullable[string] `json:"alias"`
+	OriginalUrl    string                   `json:"originalurl"`
+	DomainId       string                   `json:"domainId"`
+	CustomAlias    helpers.Nullable[string] `json:"alias"`
+	UserId         string                   `json:"userId"`
+	OrganizationId string                   `header:"X-OrganizationId"`
 }
 
 type CreateUrlResponse struct {
+	Id       string `json:"id"`
 	ShortUrl string `json:"shortlink"`
 	DomainId string `json:"domainId"`
 }
@@ -23,7 +25,18 @@ type DeleteUrlRequest struct {
 }
 
 type RedirectShortRequest struct {
-	ShortUrl string `query:"shorturl"`
+	ShortUrl       string                   `json:"shortUrl"`
+	Country        helpers.Nullable[string] `json:"country"`
+	TimeZone       helpers.Nullable[string] `json:"timezone"`
+	City           helpers.Nullable[string] `json:"city"`
+	Os             helpers.Nullable[string] `json:"os"`
+	Browser        helpers.Nullable[string] `json:"browser"`
+	UserAgent      helpers.Nullable[string] `json:"userAgent"`
+	Platform       helpers.Nullable[string] `json:"platform"`
+	IpAddress      helpers.Nullable[string] `json:"ipAddress"`
+	Method         helpers.Nullable[string] `json:"method"`
+	Status         helpers.Nullable[int]    `json:"status"`
+	OrganizationId string                   `json:"organizationId"`
 }
 
 type GetShortRequest struct {

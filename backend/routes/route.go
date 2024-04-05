@@ -10,13 +10,35 @@ import (
 
 func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router := app.Echo
+
+	//Auth
 	router.POST("/api/v1/auth/register", app.AuthService.RegisterUser)
 	router.POST("/api/v1/auth/sign-in", app.AuthService.LoginUser)
 	router.POST("/api/v1/auth/sign-out", app.AuthService.LogOut)
-	router.POST("/api/v1/shortlink", app.UrlService.CreateShortUrl, middleware.AuthorizeUser)
+
+	//Shortlinks
+	router.POST("/api/v1/shortlink", app.UrlService.CreateShortLink, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
 	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser)
-	router.GET("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
-	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin)
+	router.POST("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
+
+	//Domains
+	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
+
+	//Users
+	router.POST("/api/v1/user/send-email", app.UserService.SendEmail, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
+	router.POST("/api/v1/user/convert-referral", app.UserService.ConvertReferral)
+
+	//Teams
+	router.POST("/api/v1/teams", app.TeamService.AddTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
+	router.POST("/api/v1/teams/add-user", app.TeamService.AddUserToTeam, middleware.AuthorizeAdmin)
+	router.GET("/api/v1/teams/search", app.TeamService.SearchTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
+
+	//Tags
+	router.POST("/api/v1/tags", app.TagService.CreateTag, middleware.AuthorizeAdmin)
+	router.POST("/api/v1/tags/add-tag-short", app.TagService.AddShortLinkTag, middleware.AuthorizeAdmin)
+	router.GET("/api/v1/tags/search", app.TagService.SearchTag)
+
+	//default path
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
