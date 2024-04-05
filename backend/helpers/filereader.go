@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"bufio"
 	"encoding/csv"
 	"errors"
 	"io"
@@ -14,37 +13,31 @@ import (
 type BulkLinkData struct {
 	OriginalUrl string
 	Alias       string
+	Domain      string
 	Cloaking    bool
 }
 
-var _ IFileReader = (*TxtReader)(nil)
+var _ IFileReader = (*ExcelReader)(nil)
 var _ IFileReader = (*CsvReader)(nil)
 
 type IFileReader interface {
 	ReadFile() ([]BulkLinkData, error)
 }
 
-type TxtReader struct {
+type ExcelReader struct {
 	rc io.ReadCloser
 }
 
-func (tReader *TxtReader) ReadFile() ([]BulkLinkData, error) {
+func (tReader *ExcelReader) ReadFile() ([]BulkLinkData, error) {
 	defer tReader.rc.Close()
-	scanner := bufio.NewScanner(tReader.rc)
-
-	scanner.Split(bufio.ScanLines)
 	var text []string
-
-	for scanner.Scan() {
-		text = append(text, scanner.Text())
-	}
-
 	datas := lo.Map(text, func(line string, index int) BulkLinkData {
 		record := strings.Split(line, ",")
-		cloak, _ := strconv.ParseBool(record[2])
+		cloak, _ := strconv.ParseBool(record[3])
 		return BulkLinkData{
 			OriginalUrl: record[0],
 			Alias:       record[1],
+			Domain:      record[2],
 			Cloaking:    cloak,
 		}
 	})
@@ -67,10 +60,11 @@ func (csvReader *CsvReader) ReadFile() ([]BulkLinkData, error) {
 	}
 
 	datas := lo.Map(records, func(record []string, index int) BulkLinkData {
-		cloak, _ := strconv.ParseBool(record[2])
+		cloak, _ := strconv.ParseBool(record[3])
 		return BulkLinkData{
 			OriginalUrl: record[0],
 			Alias:       record[1],
+			Domain:      record[2],
 			Cloaking:    cloak,
 		}
 	})
@@ -85,7 +79,7 @@ func CreateReader(format string, _rc io.ReadCloser) (IFileReader, error) {
 			rc: _rc,
 		}, nil
 	case "text/plain":
-		return &TxtReader{
+		return &ExcelReader{
 			rc: _rc,
 		}, nil
 	}

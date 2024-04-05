@@ -20,6 +20,7 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router.POST("/api/v1/shortlink", app.UrlService.CreateShortLink, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
 	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser)
 	router.POST("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
+	router.POST("/api/v1/shortlink/bulk", app.UrlService.CreateBulkShortLink)
 
 	//Domains
 	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
