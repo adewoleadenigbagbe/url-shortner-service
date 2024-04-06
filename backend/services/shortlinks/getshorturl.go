@@ -86,7 +86,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 		Page:       request.Page,
 		TotalPage:  totalPage,
 		Totals:     count,
-		PageLength: request.PageLength,
+		PageLength: len(shortDatas),
 	}
 
 	return urlContext.JSON(http.StatusOK, resp)

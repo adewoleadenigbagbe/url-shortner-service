@@ -35,7 +35,7 @@ func (service DomainService) GetDomains(domainContext echo.Context) error {
 
 	sortAndOrder := request.SortBy + " " + request.Order
 	offset := (request.Page - 1) * request.PageLength
-	query := fmt.Sprintf(`SELECT Name,IsCustom,CreatedOn FROM domains WHERE OrganizationId = %s AND IsDeprecated = %t ORDER BY %s LIMIT %d OFFSET %d`,
+	query := fmt.Sprintf(`SELECT Name,IsCustom,CreatedOn FROM domains WHERE OrganizationId = '%s' AND IsDeprecated = %t ORDER BY %s LIMIT %d OFFSET %d`,
 		request.OrganizationId, false, sortAndOrder, request.PageLength, offset)
 	rows, err := service.Db.Query(query)
 	if err != nil {
@@ -77,7 +77,7 @@ func (service DomainService) GetDomains(domainContext echo.Context) error {
 		Page:       request.Page,
 		TotalPage:  totalPage,
 		Totals:     count,
-		PageLength: request.PageLength,
+		PageLength: len(datas),
 	}
 
 	return domainContext.JSON(http.StatusOK, resp)

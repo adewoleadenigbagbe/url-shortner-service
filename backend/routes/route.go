@@ -24,6 +24,7 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 
 	//Domains
 	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
+	router.GET("/api/v1/domain", app.DomainService.GetDomains)
 
 	//Users
 	router.POST("/api/v1/user/send-email", app.UserService.SendEmail, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)

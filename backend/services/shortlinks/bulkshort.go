@@ -83,7 +83,7 @@ func insertBulkShortStmt(organizationId string, userId string, data []helpers.Bu
 		short := helpers.GenerateShortLink(d.OriginalUrl)
 		now := time.Now()
 		expirationDate := now.AddDate(expirySpan, 0, 0)
-		stmt += "(?,?,?,?,?,?,?,?,?,?,?),"
+		stmt += "(?,?,?,?,?,?,?,?,?,?,?,?),"
 		vals = append(vals, id, short, d.OriginalUrl, dic[d.Domain], d.Alias, now, now, expirationDate, organizationId, userId, d.Cloaking, false)
 	}
 	//trim the last ,

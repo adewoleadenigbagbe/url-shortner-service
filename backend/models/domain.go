@@ -19,7 +19,7 @@ type DeleteDomainRequest struct {
 }
 
 type GetDomainRequest struct {
-	OrganizationId string `header:"userId"`
+	OrganizationId string `header:"X-OrganizationId"`
 	Page           int    `query:"page"`
 	PageLength     int    `query:"pageLength"`
 	SortBy         string `query:"sortBy"`

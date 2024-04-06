@@ -34,21 +34,24 @@ func (excelReader *ExcelReader) ReadFile() ([]BulkLinkData, error) {
 		return nil, err
 	}
 
-	rows, err := file.GetRows("Sheet1")
+	rows, err := file.GetRows(file.GetSheetName(0))
 	if err != nil {
 		return nil, err
 	}
 
 	defer file.Close()
+	datas := lo.FilterMap(rows, func(row []string, index int) (BulkLinkData, bool) {
+		if index == 0 {
+			return BulkLinkData{}, false
+		}
 
-	datas := lo.Map(rows, func(row []string, _ int) BulkLinkData {
 		cloak, _ := strconv.ParseBool(row[3])
 		return BulkLinkData{
 			OriginalUrl: row[0],
 			Alias:       row[1],
 			Domain:      row[2],
 			Cloaking:    cloak,
-		}
+		}, true
 	})
 
 	return datas, nil
@@ -68,14 +71,18 @@ func (csvReader *CsvReader) ReadFile() ([]BulkLinkData, error) {
 		return nil, err
 	}
 
-	datas := lo.Map(rows, func(row []string, _ int) BulkLinkData {
+	datas := lo.FilterMap(rows, func(row []string, index int) (BulkLinkData, bool) {
+		if index == 0 {
+			return BulkLinkData{}, false
+		}
+
 		cloak, _ := strconv.ParseBool(row[3])
 		return BulkLinkData{
 			OriginalUrl: row[0],
 			Alias:       row[1],
 			Domain:      row[2],
 			Cloaking:    cloak,
-		}
+		}, true
 	})
 
 	return datas, nil
@@ -87,7 +94,7 @@ func CreateReader(format string, _rc io.ReadCloser) (IFileReader, error) {
 		return &CsvReader{
 			rc: _rc,
 		}, nil
-	case "text/plain":
+	case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
 		return &ExcelReader{
 			rc: _rc,
 		}, nil
