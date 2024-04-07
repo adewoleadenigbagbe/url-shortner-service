@@ -38,6 +38,9 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router.POST("/api/v1/tags/add-tag-short", app.TagService.AddShortLinkTag, middleware.AuthorizeAdmin)
 	router.GET("/api/v1/tags/search", app.TagService.SearchTag)
 
+	//PayPlan
+	router.POST("/api/v1/payplan/change", app.PlanService.ChangePayPlan)
+
 	//default path
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
