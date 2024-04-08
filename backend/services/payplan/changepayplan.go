@@ -90,7 +90,7 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 		currentTime := time.Now().In(location)
 		var existingEffectiveDate time.Time
 		var existingEndDate time.Time
-		row3 := tx.QueryRow("SELECT EffectiveDate, EndDate FROM payschedules WHERE OrganizationId =? ORDER BY EffectiveDate desc LIMIT 1", request.OrganizationId)
+		row3 := tx.QueryRow("SELECT EffectiveDate, EndDate FROM payschedules WHERE OrganizationId =? AND IsNext =? ORDER BY EffectiveDate desc LIMIT 1", request.OrganizationId, false)
 		err = row3.Scan(&existingEffectiveDate, &existingEndDate)
 		if err != nil {
 			tx.Rollback()
