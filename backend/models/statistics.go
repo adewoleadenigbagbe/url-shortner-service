@@ -17,10 +17,4 @@ type GetShortStatisticRequest struct {
 }
 
 type GetShortStatisticResponse struct {
-	ShortId        string                      `query:"shortId"`
-	OrganizationId string                      `header:"X-OrganizationId"`
-	DateRangeType  enums.DateRange             `query:"dateRange"`
-	StartDate      sqltype.Nullable[time.Time] `query:"startDate"`
-	EndDate        sqltype.Nullable[time.Time] `query:"endDate"`
-	Timezone       string                      `query:"timezone"`
 }
