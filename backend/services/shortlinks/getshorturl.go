@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
+	"github.com/adewoleadenigbagbe/url-shortner-service/helpers/sqltype"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (urlService UrlService) GetShortLinks(urlContext echo.Context) error {
 		Hash           string
 		OriginalUrl    string
 		DomainName     string
-		Alias          helpers.Nullable[string]
+		Alias          sqltype.Nullable[string]
 		CreatedOn      time.Time
 		ExpirationDate time.Time
 	}
