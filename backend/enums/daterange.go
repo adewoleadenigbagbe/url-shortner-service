@@ -1,7 +1,6 @@
 package enums
 
 import (
-	"errors"
 	"time"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers/sqltype"
@@ -40,7 +39,7 @@ func (d DateRange) GetValue(key string) DateRange {
 	return dateRangeMap[key]
 }
 
-func (d DateRange) GetRanges(to, from sqltype.Nullable[time.Time]) (time.Time, time.Time, error) {
+func (d DateRange) GetRanges(to, from sqltype.Nullable[time.Time]) (time.Time, time.Time) {
 	var start time.Time
 	var end time.Time
 	now := time.Now()
@@ -70,8 +69,8 @@ func (d DateRange) GetRanges(to, from sqltype.Nullable[time.Time]) (time.Time, t
 		start = to.Val
 		end = from.Val
 	default:
-		return start, end, errors.New("no option configured")
+		return start, end
 	}
 
-	return start, end, nil
+	return start, end
 }
