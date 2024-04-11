@@ -2,8 +2,6 @@ package enums
 
 import (
 	"time"
-
-	"github.com/adewoleadenigbagbe/url-shortner-service/helpers/sqltype"
 )
 
 type DateRange int
@@ -39,7 +37,7 @@ func (d DateRange) GetValue(key string) DateRange {
 	return dateRangeMap[key]
 }
 
-func (d DateRange) GetRanges(to, from sqltype.Nullable[time.Time]) (time.Time, time.Time) {
+func (d DateRange) GetRanges(to, from time.Time) (time.Time, time.Time) {
 	var start time.Time
 	var end time.Time
 	now := time.Now()
@@ -54,20 +52,21 @@ func (d DateRange) GetRanges(to, from sqltype.Nullable[time.Time]) (time.Time, t
 		start = now.AddDate(0, 0, -7)
 		end = now
 	case LastWeek:
+		now = time.Date(2024, 4, 7, 0, 0, 0, 0, now.Location())
 		weekDay := now.Weekday()
 		if weekDay == time.Saturday {
-			end = now.AddDate(0, 0, -6)
+			end = now.AddDate(0, 0, -7)
 			start = end.AddDate(0, 0, -6)
 		} else {
-			end = now.AddDate(0, 0, int(weekDay-time.Saturday))
+			end = now.AddDate(0, 0, int(time.Saturday)-now.Day())
 			start = end.AddDate(0, 0, -6)
 		}
 	case Last30Days:
 		start = now.AddDate(0, 0, -30)
 		end = now
 	case Custom:
-		start = to.Val
-		end = from.Val
+		start = to
+		end = from
 	default:
 		return start, end
 	}

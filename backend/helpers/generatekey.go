@@ -56,10 +56,10 @@ func IsValidUrl(query string) bool {
 }
 
 func StartOfDay(date time.Time) time.Time {
-	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, nil)
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
 func EndOfDay(date time.Time) time.Time {
 	nsec := int(math.Pow10(9)) - 1
-	return time.Date(date.Year(), date.Month(), date.Day(), 11, 59, 59, nsec, nil)
+	return time.Date(date.Year(), date.Month(), date.Day(), 11, 59, 59, nsec, date.Location())
 }

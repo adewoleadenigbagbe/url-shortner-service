@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
-	"github.com/adewoleadenigbagbe/url-shortner-service/helpers/sqltype"
 )
 
 var _ IAggregateRow = (*CityAggregateRow)(nil)
@@ -15,13 +14,13 @@ type IAggregateRow interface {
 }
 
 type GetShortStatisticRequest struct {
-	ShortId        string                      `query:"shortId"`
-	OrganizationId string                      `header:"X-OrganizationId"`
-	DateRangeType  enums.DateRange             `query:"dateRange"`
-	StartDate      sqltype.Nullable[time.Time] `query:"startDate"`
-	EndDate        sqltype.Nullable[time.Time] `query:"endDate"`
-	Timezone       string                      `query:"timezone"`
-	SortBy         string                      `query:"sortBy"`
+	ShortId        string          `query:"shortId"`
+	OrganizationId string          `header:"X-OrganizationId"`
+	DateRangeType  enums.DateRange `query:"dateRange"`
+	StartDate      time.Time       `query:"startDate"`
+	EndDate        time.Time       `query:"endDate"`
+	Timezone       string          `query:"timezone"`
+	SortBy         string          `query:"sortBy"`
 }
 
 type GetShortStatisticResponse struct {
@@ -66,8 +65,8 @@ type BrowserAggregateRow struct {
 }
 
 type DateAggregateRow struct {
-	Date  time.Time `json:"date"`
-	Count int       `json:"count"`
+	Date  string `json:"date"`
+	Count int    `json:"count"`
 }
 
 func (countryAggregateRow CountryAggregateRow) GetCount() int {

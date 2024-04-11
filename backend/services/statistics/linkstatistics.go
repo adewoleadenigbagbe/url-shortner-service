@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
@@ -15,7 +14,7 @@ type StatisticsService struct {
 	Db *sql.DB
 }
 
-func (service StatisticsService) CreateShortLink(statisticsContext echo.Context) error {
+func (service StatisticsService) GetShortStatistics(statisticsContext echo.Context) error {
 	var err error
 	request := new(models.GetShortStatisticRequest)
 	binder := &echo.DefaultBinder{}
@@ -24,14 +23,14 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 		return statisticsContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
-	err = binder.BindBody(statisticsContext, request)
+	err = binder.BindQueryParams(statisticsContext, request)
 	if err != nil {
 		return statisticsContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
-	shortlinkRow := service.Db.QueryRow(`SELECT shortlinks.Hash, domains.Name FROM shortlinks 
+	shortlinkRow := service.Db.QueryRow(`SELECT shortlinks.Hash, domains.Name FROM shortlinks
 	JOIN domains ON shortlinks.DomainId = domains.Id
-	WHERE shortlinks.Id =? 
+	WHERE shortlinks.Id =?
 	AND shortlinks.OrganizationId =?
 	AND shortlinks.IsDeprecated =?
 	AND domains.IsDeprecated =?`,
@@ -46,16 +45,16 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 
 	startDate, endDate := request.DateRangeType.GetRanges(request.StartDate, request.EndDate)
 	if startDate.IsZero() || endDate.IsZero() {
-		return statisticsContext.JSON(http.StatusBadRequest, []string{"select a range date tyoe"})
+		return statisticsContext.JSON(http.StatusBadRequest, []string{"select a range date type"})
 	}
 
 	startDate = helpers.StartOfDay(startDate)
 	endDate = helpers.EndOfDay(endDate)
 
 	cityQuery := fmt.Sprintf(`
-	SELECT accesslogs.City , COUNT(accesslogs.City) AS CityCount FROM accesslogs
+	SELECT accesslogs.City, COUNT(accesslogs.City) AS CityCount FROM accesslogs
 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-	WHERE accesslogs.ShortId = '%s' 
+	WHERE accesslogs.ShortId = '%s'
 	AND accesslogs.OrganizationId = '%s'
 	AND accesslogs.TimeZone = '%s'
 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
@@ -74,7 +73,7 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 	var cityAggregates []models.CityAggregateRow
 	for cityrows.Next() {
 		var cityAggregate models.CityAggregateRow
-		err = cityrows.Scan(cityAggregate.City, cityAggregate.Count)
+		err = cityrows.Scan(&cityAggregate.City, &cityAggregate.Count)
 		if err != nil {
 			return statisticsContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
@@ -82,9 +81,9 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 	}
 
 	countryQuery := fmt.Sprintf(`
-	SELECT accesslogs.Country , COUNT(accesslogs.Country) AS CountryCount FROM accesslogs
+	SELECT accesslogs.Country, COUNT(accesslogs.Country) AS CountryCount FROM accesslogs
 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-	WHERE accesslogs.ShortId = '%s' 
+	WHERE accesslogs.ShortId = '%s'
 	AND accesslogs.OrganizationId = '%s'
 	AND accesslogs.TimeZone = '%s'
 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
@@ -104,7 +103,7 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 
 	for countryrows.Next() {
 		var countryAggregate models.CountryAggregateRow
-		err = countryrows.Scan(countryAggregate.Country, countryAggregate.Count)
+		err = countryrows.Scan(&countryAggregate.Country, &countryAggregate.Count)
 		if err != nil {
 			return statisticsContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
@@ -112,9 +111,9 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 	}
 
 	osQuery := fmt.Sprintf(`
-	SELECT accesslogs.Os , COUNT(accesslogs.Os) AS OsCount FROM accesslogs
+	SELECT accesslogs.Os, COUNT(accesslogs.Os) AS OsCount FROM accesslogs
 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-	WHERE accesslogs.ShortId = '%s' 
+	WHERE accesslogs.ShortId = '%s'
 	AND accesslogs.OrganizationId = '%s'
 	AND accesslogs.TimeZone = '%s'
 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
@@ -134,7 +133,7 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 
 	for osrows.Next() {
 		var osAggregate models.OsAggregateRow
-		err = osrows.Scan(osAggregate.Os, osAggregate.Count)
+		err = osrows.Scan(&osAggregate.Os, &osAggregate.Count)
 		if err != nil {
 			return statisticsContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
@@ -142,9 +141,9 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 	}
 
 	platformQuery := fmt.Sprintf(`
-	SELECT accesslogs.Platform , COUNT(accesslogs.Platform) AS PlatformCount FROM accesslogs
+	SELECT accesslogs.Platform, COUNT(accesslogs.Platform) AS PlatformCount FROM accesslogs
 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-	WHERE accesslogs.ShortId = '%s' 
+	WHERE accesslogs.ShortId = '%s'
 	AND accesslogs.OrganizationId = '%s'
 	AND accesslogs.TimeZone = '%s'
 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
@@ -164,7 +163,7 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 
 	for platformrows.Next() {
 		var platformAggregate models.PlatformAggregateRow
-		err = platformrows.Scan(platformAggregate.Platform, platformAggregate.Count)
+		err = platformrows.Scan(&platformAggregate.Platform, &platformAggregate.Count)
 		if err != nil {
 			return statisticsContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
@@ -172,9 +171,9 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 	}
 
 	browserQuery := fmt.Sprintf(`
-	SELECT accesslogs.Browser , COUNT(accesslogs.Browser) AS BrowserCount FROM accesslogs
+	SELECT accesslogs.Browser, COUNT(accesslogs.Browser) AS BrowserCount FROM accesslogs
 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-	WHERE accesslogs.ShortId = '%s' 
+	WHERE accesslogs.ShortId = '%s'
 	AND accesslogs.OrganizationId = '%s'
 	AND accesslogs.TimeZone = '%s'
 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
@@ -194,7 +193,7 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 
 	for browserrows.Next() {
 		var browserAggregate models.BrowserAggregateRow
-		err = browserrows.Scan(browserAggregate.Browser, browserAggregate.Count)
+		err = browserrows.Scan(&browserAggregate.Browser, &browserAggregate.Count)
 		if err != nil {
 			return statisticsContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
@@ -202,9 +201,9 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 	}
 
 	dateQuery := fmt.Sprintf(`
-	SELECT Date(accesslogs.CreatedOn) AS Date , COUNT(accesslogs.CreatedOn) AS CreatedOnCount FROM accesslogs
+	SELECT Date(accesslogs.CreatedOn) AS Date, COUNT(accesslogs.CreatedOn) AS CreatedOnCount FROM accesslogs
 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-	WHERE accesslogs.ShortId = '%s' 
+	WHERE accesslogs.ShortId = '%s'
 	AND accesslogs.OrganizationId = '%s'
 	AND accesslogs.TimeZone = '%s'
 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
@@ -224,7 +223,7 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 
 	for daterrows.Next() {
 		var dateAggregate models.DateAggregateRow
-		err = daterrows.Scan(dateAggregate.Date, dateAggregate.Count)
+		err = daterrows.Scan(&dateAggregate.Date, &dateAggregate.Count)
 		if err != nil {
 			return statisticsContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
@@ -245,36 +244,36 @@ func (service StatisticsService) CreateShortLink(statisticsContext echo.Context)
 	return statisticsContext.JSON(http.StatusOK, resp)
 }
 
-func GetAggregateRow(schema, column string, startDate, endDate time.Time, db *sql.DB, request models.GetShortStatisticRequest) ([]models.IAggregateRow, error) {
-	columnField := schema + "." + column
-	query := fmt.Sprintf(`
-	SELECT %s , COUNT(%s) AS CountryCount FROM accesslogs
-	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-	WHERE accesslogs.ShortId = '%s' 
-	AND accesslogs.OrganizationId = '%s'
-	AND accesslogs.TimeZone = '%s'
-	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
-	AND accesslogs.IsDeprecated = %t
-	AND shortlinks.IsDeprecated = %t
-	GROUP BY %s
-	ORDER BY CountryCount %s
-	`, columnField, columnField, request.ShortId, request.OrganizationId, request.Timezone, startDate, endDate, false, false, columnField, request.SortBy)
+// func GetAggregateRow(schema, column string, startDate, endDate time.Time, db *sql.DB, request models.GetShortStatisticRequest) ([]models.IAggregateRow, error) {
+// 	columnField := schema + "." + column
+// 	query := fmt.Sprintf(`
+// 	SELECT %s , COUNT(%s) AS CountryCount FROM accesslogs
+// 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
+// 	WHERE accesslogs.ShortId = '%s'
+// 	AND accesslogs.OrganizationId = '%s'
+// 	AND accesslogs.TimeZone = '%s'
+// 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
+// 	AND accesslogs.IsDeprecated = %t
+// 	AND shortlinks.IsDeprecated = %t
+// 	GROUP BY %s
+// 	ORDER BY CountryCount %s
+// 	`, columnField, columnField, request.ShortId, request.OrganizationId, request.Timezone, startDate, endDate, false, false, columnField, request.SortBy)
 
-	rows, err := db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+// 	rows, err := db.Query(query)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer rows.Close()
 
-	var rowAggregates []models.IAggregateRow
-	for rows.Next() {
-		var rowAggregate models.IAggregateRow
-		err = rows.Scan(rowAggregate)
-		if err != nil {
-			return nil, err
-		}
-		rowAggregates = append(rowAggregates, rowAggregate)
-	}
+// 	var rowAggregates []models.IAggregateRow
+// 	for rows.Next() {
+// 		var rowAggregate models.IAggregateRow
+// 		err = rows.Scan(rowAggregate)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		rowAggregates = append(rowAggregates, rowAggregate)
+// 	}
 
-	return rowAggregates, nil
-}
+// 	return rowAggregates, nil
+// }
