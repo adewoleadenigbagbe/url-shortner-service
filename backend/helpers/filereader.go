@@ -6,6 +6,7 @@ import (
 	"io"
 	"strconv"
 
+	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
 	"github.com/samber/lo"
 	"github.com/xuri/excelize/v2"
 )
@@ -88,13 +89,13 @@ func (csvReader *CsvReader) ReadFile() ([]BulkLinkData, error) {
 	return datas, nil
 }
 
-func CreateReader(format string, _rc io.ReadCloser) (IFileReader, error) {
+func CreateReader(format enums.ReportType, _rc io.ReadCloser) (IFileReader, error) {
 	switch format {
-	case "text/csv":
+	case enums.Csv:
 		return &CsvReader{
 			rc: _rc,
 		}, nil
-	case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+	case enums.Excel:
 		return &ExcelReader{
 			rc: _rc,
 		}, nil
