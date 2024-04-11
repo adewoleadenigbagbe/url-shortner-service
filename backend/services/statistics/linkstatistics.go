@@ -2,12 +2,15 @@ package statistics
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
 )
 
 type StatisticsService struct {
@@ -27,6 +30,16 @@ func (service StatisticsService) GetShortStatistics(statisticsContext echo.Conte
 	if err != nil {
 		return statisticsContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
+
+	errs := validateStatisticsRequest(*request)
+	if len(errs) > 0 {
+		valErrors := lo.Map(errs, func(er error, index int) string {
+			return er.Error()
+		})
+		return statisticsContext.JSON(http.StatusBadRequest, valErrors)
+	}
+
+	setStatisticsDefault(request)
 
 	shortlinkRow := service.Db.QueryRow(`SELECT shortlinks.Hash, domains.Name FROM shortlinks
 	JOIN domains ON shortlinks.DomainId = domains.Id
@@ -244,36 +257,29 @@ func (service StatisticsService) GetShortStatistics(statisticsContext echo.Conte
 	return statisticsContext.JSON(http.StatusOK, resp)
 }
 
-// func GetAggregateRow(schema, column string, startDate, endDate time.Time, db *sql.DB, request models.GetShortStatisticRequest) ([]models.IAggregateRow, error) {
-// 	columnField := schema + "." + column
-// 	query := fmt.Sprintf(`
-// 	SELECT %s , COUNT(%s) AS CountryCount FROM accesslogs
-// 	JOIN shortlinks ON accesslogs.ShortId = shortlinks.Id
-// 	WHERE accesslogs.ShortId = '%s'
-// 	AND accesslogs.OrganizationId = '%s'
-// 	AND accesslogs.TimeZone = '%s'
-// 	AND accesslogs.CreatedOn >= '%s' AND accesslogs.CreatedOn <= '%s'
-// 	AND accesslogs.IsDeprecated = %t
-// 	AND shortlinks.IsDeprecated = %t
-// 	GROUP BY %s
-// 	ORDER BY CountryCount %s
-// 	`, columnField, columnField, request.ShortId, request.OrganizationId, request.Timezone, startDate, endDate, false, false, columnField, request.SortBy)
+func validateStatisticsRequest(request models.GetShortStatisticRequest) []error {
+	var validationErrors []error
+	if request.Timezone == "" {
+		validationErrors = append(validationErrors, errors.New("timezone is required"))
+	}
 
-// 	rows, err := db.Query(query)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
+	if request.ShortId == "" {
+		validationErrors = append(validationErrors, errors.New("shortId is required"))
+	}
 
-// 	var rowAggregates []models.IAggregateRow
-// 	for rows.Next() {
-// 		var rowAggregate models.IAggregateRow
-// 		err = rows.Scan(rowAggregate)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		rowAggregates = append(rowAggregates, rowAggregate)
-// 	}
+	if request.DateRangeType == enums.Custom && (request.EndDate.IsZero() || request.StartDate.IsZero()) {
+		validationErrors = append(validationErrors, errors.New("select Start/End Date for custom dates"))
+	}
 
-// 	return rowAggregates, nil
-// }
+	return validationErrors
+}
+
+func setStatisticsDefault(request *models.GetShortStatisticRequest) {
+	if request.DateRangeType < enums.Today {
+		request.DateRangeType = enums.Today
+	}
+
+	if request.SortBy == "" {
+		request.SortBy = "asc"
+	}
+}
