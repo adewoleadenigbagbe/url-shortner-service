@@ -6,6 +6,7 @@ import (
 	"time"
 
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
+	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
 	"github.com/labstack/echo/v4"
 )
@@ -15,7 +16,8 @@ func (service UrlService) CreateBulkShortLink(urlContext echo.Context) error {
 	req := urlContext.Request()
 	headers := req.Header
 
-	reader, err := helpers.CreateReader(headers.Get("Content-Type"), req.Body)
+	reportType := enums.ReportType(headers.Get("Content-Type"))
+	reader, err := helpers.CreateReader(reportType, req.Body)
 	if err != nil {
 		return urlContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
