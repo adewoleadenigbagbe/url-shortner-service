@@ -18,6 +18,25 @@ var (
 	ExportFileName = "LinksReport"
 )
 
+type ShortData struct {
+	OriginalUrl    string
+	Hash           string
+	Domain         string
+	Alias          string
+	CreatedOn      time.Time
+	ExpirationDate time.Time
+	CreatedBy      string
+	Cloaking       bool
+}
+
+type SheetData struct {
+	SheetName  string
+	RowCounter int
+	Headers    []string
+	//TODO: make this generic for the future
+	Data []ShortData
+}
+
 type ExportService struct {
 	Db *sql.DB
 }
@@ -38,6 +57,27 @@ func (service ExportService) GenerateShortLinkReport(exportContext echo.Context)
 		return exportContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
+	rows, err := service.Db.Query(`SELECT shortlinks.OriginalUrl,shortlinks.Hash,
+	domains.Name,shortlinks.Alias,shortlinks.CreatedOn,shortlinks.ExpirationDate,
+	users.Name,shortlinks.Cloaking
+	FROM shortlinks 
+	JOIN domains on shortlinks.DomainId = domains.Id
+	JOIN users on shortlinks.CreatedById = users.Id
+	WHERE shortlinks.OrganizationId =? AND shortlinks.IsDeprecated =? AND domains.IsDeprecated =?`,
+		request.OrganizationId, false, false)
+	if err != nil {
+		return exportContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
+
+	var shorts []ShortData
+	for rows.Next() {
+		var short ShortData
+		rows.Scan(&short.OriginalUrl, &short.Hash, &short.Domain, &short.Alias, &short.CreatedOn, &short.ExpirationDate, &short.CreatedBy, &short.Cloaking)
+		shorts = append(shorts, short)
+	}
+
+	defer rows.Close()
+
 	file := excelize.NewFile()
 	file.SetActiveSheet(0)
 	defer func() {
@@ -46,7 +86,7 @@ func (service ExportService) GenerateShortLinkReport(exportContext echo.Context)
 		}
 	}()
 
-	sheetData := CreateSheetData("Links", 1)
+	sheetData := CreateSheetData("Links", 1, shorts)
 	file.SetSheetName(file.GetSheetName(0), sheetData.SheetName)
 
 	//TODO: make this dynamic , generated from the model in future use
@@ -74,6 +114,8 @@ func (service ExportService) GenerateShortLinkReport(exportContext echo.Context)
 	setTitle(file, sheetData, headingInfo, columnLength)
 
 	setColumnHeading(file, sheetData, columnHeaders)
+
+	setDataRows(file, sheetData, columnHeaders)
 
 	buffer, err := file.WriteToBuffer()
 	if err != nil {
@@ -137,24 +179,40 @@ func setColumnHeading(excelFile *excelize.File, sheetData *SheetData, columnHead
 	endCol, _ := excelize.ColumnNumberToName(len(columnHeaders))
 
 	excelFile.SetColWidth(sheetData.SheetName, startCol, endCol, 25)
+	sheetData.NextRow()
 }
 
-type SheetData struct {
-	SheetName  string
-	RowCounter int
-	Headers    []string
-	Data       [][]interface{}
+func setDataRows(excelFile *excelize.File, sheetData *SheetData, columnHeaders []string) {
+	formatStartRow := sheetData.GetRow()
+	fmt.Println(formatStartRow)
+	for columnIndex := range columnHeaders {
+		for _, d := range sheetData.Data {
+			cell, _ := excelize.CoordinatesToCellName(columnIndex+1, sheetData.RowCounter)
+			excelFile.SetCellValue(sheetData.SheetName, cell, d)
+		}
+		sheetData.NextRow()
+	}
+
+	//stripped rows
+	formatRow()
+}
+
+func formatRow() {
 }
 
 func (sheetData *SheetData) NextRow() {
 	sheetData.RowCounter += 1
 }
 
-func CreateSheetData(name string, rowCounter int) *SheetData {
+func (sheetData SheetData) GetRow() int {
+	return sheetData.RowCounter
+}
+
+func CreateSheetData(name string, rowCounter int, data []ShortData) *SheetData {
 	return &SheetData{
 		SheetName:  name,
 		RowCounter: rowCounter,
-		Data:       make([][]interface{}, 0),
+		Data:       data,
 	}
 }
 
