@@ -3,9 +3,12 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
 	"github.com/xuri/excelize/v2"
 )
@@ -20,15 +23,59 @@ type ExportService struct {
 }
 
 func (service ExportService) GenerateShortLinkReport(exportContext echo.Context) error {
-	f := excelize.NewFile()
-	defer f.Close()
+	var err error
+	request := new(models.GenerateShortReportRequest)
+	binder := &echo.DefaultBinder{}
+	err = binder.BindHeaders(exportContext, request)
+	if err != nil {
+		return exportContext.JSON(http.StatusBadRequest, []string{err.Error()})
+	}
 
-	sheetData := CreateSheet("Sheet1", "Links", 0)
-	index, _ := f.NewSheet(sheetData.SheetId)
-	f.SetActiveSheet(index)
-	f.SetSheetName(sheetData.SheetId, sheetData.SheetName)
+	var organizationName string
+	row := service.Db.QueryRow("SELECT Name FROM organizations WHERE Id =? AND IsDeprecated =?", request.OrganizationId, false)
+	err = row.Scan(&organizationName)
+	if err != nil {
+		return exportContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+	}
 
-	buffer, err := f.WriteToBuffer()
+	file := excelize.NewFile()
+	file.SetActiveSheet(0)
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	sheetData := CreateSheetData("Links", 1)
+	file.SetSheetName(file.GetSheetName(0), sheetData.SheetName)
+
+	//TODO: make this dynamic , generated from the model in future use
+	columnHeaders := []string{
+		"OriginalUrl",
+		"Short",
+		"Domain",
+		"Alias",
+		"CreatedOn",
+		"ExpirationDate",
+		"CreatedBy",
+		"IsCloak",
+	}
+
+	requestedOn := formatSheetDate(time.Now())
+
+	headingInfo := []string{
+		organizationName,
+		ReportName,
+		requestedOn,
+	}
+
+	columnLength := calculateSheetWidth(columnHeaders)
+
+	setTitle(file, sheetData, headingInfo, columnLength)
+
+	setColumnHeading(file, sheetData, columnHeaders)
+
+	buffer, err := file.WriteToBuffer()
 	if err != nil {
 		return exportContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
@@ -42,23 +89,103 @@ func (service ExportService) GenerateShortLinkReport(exportContext echo.Context)
 	return nil
 }
 
-func setHeading(excelFile *excelize.File, sheetData *SheetData) error {
-	return nil
+func setTitle(excelFile *excelize.File, sheetData *SheetData, headingInfo []string, columnLength int) {
+	var title string
+	for _, v := range headingInfo {
+		title += fmt.Sprintln(v)
+	}
+
+	cell, _ := excelize.CoordinatesToCellName(1, sheetData.RowCounter)
+	excelFile.SetCellValue(sheetData.SheetName, cell, title)
+	length := len(strings.Split(title, "\n"))
+	excelFile.SetRowHeight(sheetData.SheetName, sheetData.RowCounter, float64(length*16))
+
+	style, _ := excelFile.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Size: 12, Bold: true},
+		Fill: excelize.Fill{Pattern: 1, Color: []string{"##f2f4f5"}, Type: "pattern"},
+		Alignment: &excelize.Alignment{
+			WrapText: true,
+		},
+	})
+
+	upperLeftBound, _ := excelize.CoordinatesToCellName(1, sheetData.RowCounter)
+	bottomRightBound, _ := excelize.CoordinatesToCellName(columnLength, sheetData.RowCounter)
+	excelFile.SetCellStyle(sheetData.SheetName, upperLeftBound, bottomRightBound, style)
+
+	excelFile.MergeCell(sheetData.SheetName, upperLeftBound, bottomRightBound)
+
+	sheetData.NextRow()
+}
+
+func calculateSheetWidth(columnHeaders []string) int {
+	return len(columnHeaders)
+}
+
+func setColumnHeading(excelFile *excelize.File, sheetData *SheetData, columnHeaders []string) {
+	style, _ := excelFile.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true},
+		Alignment: &excelize.Alignment{Vertical: "center", Horizontal: "center"},
+	})
+	sheetData.NextRow()
+	for columnIndex, columnHeader := range columnHeaders {
+		cell, _ := excelize.CoordinatesToCellName(columnIndex+1, sheetData.RowCounter)
+		excelFile.SetCellValue(sheetData.SheetName, cell, columnHeader)
+		excelFile.SetCellStyle(sheetData.SheetName, cell, cell, style)
+	}
+
+	startCol, _ := excelize.ColumnNumberToName(1)
+	endCol, _ := excelize.ColumnNumberToName(len(columnHeaders))
+
+	excelFile.SetColWidth(sheetData.SheetName, startCol, endCol, 25)
 }
 
 type SheetData struct {
-	SheetId    string
 	SheetName  string
-	RowCounter *int
+	RowCounter int
 	Headers    []string
 	Data       [][]interface{}
 }
 
-func CreateSheet(id, name string, rowCounter int) *SheetData {
+func (sheetData *SheetData) NextRow() {
+	sheetData.RowCounter += 1
+}
+
+func CreateSheetData(name string, rowCounter int) *SheetData {
 	return &SheetData{
-		SheetId:    id,
 		SheetName:  name,
-		RowCounter: &rowCounter,
+		RowCounter: rowCounter,
 		Data:       make([][]interface{}, 0),
 	}
+}
+
+func formatSheetDate(date time.Time) string {
+	var (
+		month  string
+		day    string
+		hour   string
+		minute string
+	)
+
+	if date.Month() < 10 {
+		month += "0"
+	}
+	month += fmt.Sprint(int(date.Month()))
+
+	if date.Day() < 10 {
+		day += "0"
+	}
+	day += fmt.Sprint(date.Day())
+
+	if date.Hour() < 10 {
+		hour += "0"
+	}
+	hour += fmt.Sprint(date.Hour())
+
+	if date.Minute() < 10 {
+		minute += "0"
+	}
+	minute += fmt.Sprint(date.Minute())
+	zone, _ := date.Zone()
+
+	return fmt.Sprintf("Requested on: %s/%d/%s %s:%s %s", month, date.Year(), day, hour, minute, zone)
 }
