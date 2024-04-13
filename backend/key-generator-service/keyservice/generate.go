@@ -3,7 +3,6 @@ package keyservice
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -54,26 +53,26 @@ func (kg *KeyGenerator) saveKey(key string) error {
 	return err
 }
 
-func NewKeyGenerator() *KeyGenerator {
+func NewKeyGenerator() (*KeyGenerator, error) {
 	currentWorkingDirectory, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	index := strings.Index(currentWorkingDirectory, RootFolderPath)
 	if index == -1 {
-		log.Fatal("App Root Folder Path not found")
+		return nil, err
 	}
 
 	filePath := filepath.Join(currentWorkingDirectory[:index], RootFolderPath, dbFilePath)
 	db, err := database.ConnectToSQLite(filePath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return &KeyGenerator{
 		db:            db,
 		scheduleTimer: time.NewTicker(2 * time.Minute),
 		done:          make(chan bool),
-	}
+	}, nil
 }

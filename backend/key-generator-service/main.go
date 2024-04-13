@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,11 +11,15 @@ import (
 )
 
 func main() {
+
+	kg, err := keyservice.NewKeyGenerator()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	//ctx := context.WithValue(context.Background(), "sig", quit)
-
-	kg := keyservice.NewKeyGenerator()
 	go func(c chan os.Signal) {
 		kg.Run(c)
 	}(quit)
