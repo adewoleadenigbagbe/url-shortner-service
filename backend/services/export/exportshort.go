@@ -19,12 +19,13 @@ var (
 )
 
 type ShortData struct {
-	OriginalUrl    string
-	Hash           string
-	Domain         string
-	Alias          string
-	CreatedOn      time.Time
-	ExpirationDate time.Time
+	OriginalUrl string
+	Hash        string
+	Domain      string
+	Alias       string
+	//TODO: execel sheet to format time
+	CreatedOn      string
+	ExpirationDate string
 	CreatedBy      string
 	Cloaking       bool
 }
@@ -58,7 +59,7 @@ func (service ExportService) GenerateShortLinkReport(exportContext echo.Context)
 	}
 
 	rows, err := service.Db.Query(`SELECT shortlinks.OriginalUrl,shortlinks.Hash,
-	domains.Name,shortlinks.Alias,shortlinks.CreatedOn,shortlinks.ExpirationDate,
+	domains.Name,shortlinks.Alias,DATE(shortlinks.CreatedOn),DATE(shortlinks.ExpirationDate),
 	users.Name,shortlinks.Cloaking
 	FROM shortlinks 
 	JOIN domains on shortlinks.DomainId = domains.Id
@@ -144,7 +145,7 @@ func setTitle(excelFile *excelize.File, sheetData *SheetData, headingInfo []stri
 
 	style, _ := excelFile.NewStyle(&excelize.Style{
 		Font: &excelize.Font{Size: 12, Bold: true},
-		Fill: excelize.Fill{Pattern: 1, Color: []string{"##f2f4f5"}, Type: "pattern"},
+		Fill: excelize.Fill{Pattern: 1, Color: []string{"#f2f2f2"}, Type: "pattern"},
 		Alignment: &excelize.Alignment{
 			WrapText: true,
 		},
@@ -184,20 +185,34 @@ func setColumnHeading(excelFile *excelize.File, sheetData *SheetData, columnHead
 
 func setDataRows(excelFile *excelize.File, sheetData *SheetData, columnHeaders []string) {
 	formatStartRow := sheetData.GetRow()
-	fmt.Println(formatStartRow)
-	for columnIndex := range columnHeaders {
-		for _, d := range sheetData.Data {
-			cell, _ := excelize.CoordinatesToCellName(columnIndex+1, sheetData.RowCounter)
-			excelFile.SetCellValue(sheetData.SheetName, cell, d)
-		}
+	for _, d := range sheetData.Data {
+		cell, _ := excelize.CoordinatesToCellName(1, sheetData.RowCounter)
+		//TODO: this need fix too, it should used the column info to get the value
+		excelFile.SetSheetRow(sheetData.SheetName, cell, &[]interface{}{d.OriginalUrl, d.Hash, d.Domain, d.Alias, d.CreatedOn, d.ExpirationDate, d.CreatedBy, d.Cloaking})
+		// for columnIndex := range columnHeaders {
+		// 	cell, _ := excelize.CoordinatesToCellName(columnIndex+1, sheetData.RowCounter)
+		// 	excelFile.SetCellValue(sheetData.SheetName, cell, d)
+		// 	excelFile.SetSheetRow()
+		// }
 		sheetData.NextRow()
 	}
 
 	//stripped rows
-	formatRow()
+	formatRow(excelFile, sheetData, formatStartRow, sheetData.GetRow(), len(columnHeaders))
 }
 
-func formatRow() {
+func formatRow(excelFile *excelize.File, sheetData *SheetData, startRow, endRow, columnLength int) {
+	style, _ := excelFile.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{Pattern: 1, Color: []string{"#ddebf7"}, Type: "pattern"},
+	})
+
+	for i := startRow; i < endRow; i++ {
+		if i%2 != 0 {
+			topcell, _ := excelize.CoordinatesToCellName(1, i)
+			bottomcell, _ := excelize.CoordinatesToCellName(columnLength, i)
+			excelFile.SetCellStyle(sheetData.SheetName, topcell, bottomcell, style)
+		}
+	}
 }
 
 func (sheetData *SheetData) NextRow() {
