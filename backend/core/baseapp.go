@@ -9,10 +9,11 @@ import (
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
 	auth "github.com/adewoleadenigbagbe/url-shortner-service/services/auth"
 	domain "github.com/adewoleadenigbagbe/url-shortner-service/services/domain"
+	plan "github.com/adewoleadenigbagbe/url-shortner-service/services/payplan"
 	link "github.com/adewoleadenigbagbe/url-shortner-service/services/shortlinks"
-	user "github.com/adewoleadenigbagbe/url-shortner-service/services/user"
-	teams "github.com/adewoleadenigbagbe/url-shortner-service/services/teams"
 	tag "github.com/adewoleadenigbagbe/url-shortner-service/services/tags"
+	teams "github.com/adewoleadenigbagbe/url-shortner-service/services/teams"
+	user "github.com/adewoleadenigbagbe/url-shortner-service/services/user"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
 )
@@ -31,6 +32,7 @@ type BaseApp struct {
 	UserService   user.UserService
 	TeamService   teams.TeamService
 	TagService    tag.TagService
+	PlanService   plan.PlanService
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
@@ -76,6 +78,9 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 			Db: db,
 		},
 		TagService: tag.TagService{
+			Db: db,
+		},
+		PlanService: plan.PlanService{
 			Db: db,
 		},
 	}
