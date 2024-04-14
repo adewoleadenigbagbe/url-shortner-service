@@ -15,7 +15,7 @@ const (
 	Custom
 )
 
-var dateRangeMap = map[string]DateRange{
+var DateRangeMap = map[string]DateRange{
 	"Yesterday":  Yesterday,
 	"Today":      Today,
 	"Last7Days":  Last7Days,
@@ -26,7 +26,7 @@ var dateRangeMap = map[string]DateRange{
 
 func (d DateRange) GetValues() []DateRange {
 	var values []DateRange
-	for _, v := range dateRangeMap {
+	for _, v := range DateRangeMap {
 		values = append(values, v)
 	}
 
@@ -34,7 +34,7 @@ func (d DateRange) GetValues() []DateRange {
 }
 
 func (d DateRange) GetValue(key string) DateRange {
-	return dateRangeMap[key]
+	return DateRangeMap[key]
 }
 
 func (d DateRange) GetRanges(to, from time.Time) (time.Time, time.Time) {

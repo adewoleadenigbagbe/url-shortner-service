@@ -9,6 +9,7 @@ import (
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
 	auth "github.com/adewoleadenigbagbe/url-shortner-service/services/auth"
 	domain "github.com/adewoleadenigbagbe/url-shortner-service/services/domain"
+	enum "github.com/adewoleadenigbagbe/url-shortner-service/services/enums"
 	export "github.com/adewoleadenigbagbe/url-shortner-service/services/export"
 	link "github.com/adewoleadenigbagbe/url-shortner-service/services/shortlinks"
 	statistic "github.com/adewoleadenigbagbe/url-shortner-service/services/statistics"
@@ -33,8 +34,9 @@ type BaseApp struct {
 	UserService       user.UserService
 	TeamService       teams.TeamService
 	TagService        tag.TagService
-	ExportService export.ExportService
+	ExportService     export.ExportService
 	StatisticsService statistic.StatisticsService
+	EnumService       enum.EnumService
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
@@ -88,6 +90,7 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 		StatisticsService: statistic.StatisticsService{
 			Db: db,
 		},
+		EnumService: enum.EnumService{},
 	}
 
 	return app, nil
