@@ -10,6 +10,7 @@ import (
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
 	"github.com/adewoleadenigbagbe/url-shortner-service/enums"
 	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
+	"github.com/adewoleadenigbagbe/url-shortner-service/helpers/sqltype"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
@@ -101,9 +102,9 @@ func validateUrlRequest(request models.CreateUrlRequest) []error {
 	return validationErrors
 }
 
-func GetLinkCount(db *sql.DB, id string) (helpers.Nullable[enums.PayPlan], int, error) {
+func GetLinkCount(db *sql.DB, id string) (sqltype.Nullable[enums.PayPlan], int, error) {
 	var count int
-	var planType helpers.Nullable[enums.PayPlan] //
+	var planType sqltype.Nullable[enums.PayPlan] //
 
 	query := `SELECT payplans.Type,COUNT(shortlinks.Id) AS linkcount FROM payplans 
 	JOIN organizationpayplans ON payplans.Id = organizationpayplans.PayPlanId
@@ -115,7 +116,7 @@ func GetLinkCount(db *sql.DB, id string) (helpers.Nullable[enums.PayPlan], int, 
 
 	err := db.QueryRow(query, id, false, true, true).Scan(&planType, &count)
 	if err != nil {
-		return helpers.NewNullable(enums.PayPlan(0), false), 0, err
+		return sqltype.NewNullable(enums.PayPlan(0), false), 0, err
 	}
 	return planType, count, nil
 }

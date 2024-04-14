@@ -3,13 +3,13 @@ package models
 import (
 	"time"
 
-	"github.com/adewoleadenigbagbe/url-shortner-service/helpers"
+	"github.com/adewoleadenigbagbe/url-shortner-service/helpers/sqltype"
 )
 
 type CreateUrlRequest struct {
 	OriginalUrl    string                   `json:"originalurl"`
 	DomainId       string                   `json:"domainId"`
-	CustomAlias    helpers.Nullable[string] `json:"alias"`
+	CustomAlias    sqltype.Nullable[string] `json:"alias"`
 	UserId         string                   `json:"userId"`
 	Cloaking       bool                     `json:"cloaking"`
 	OrganizationId string                   `header:"X-OrganizationId"`
@@ -27,16 +27,16 @@ type DeleteUrlRequest struct {
 
 type RedirectShortRequest struct {
 	ShortUrl       string                   `json:"shortUrl"`
-	Country        helpers.Nullable[string] `json:"country"`
-	TimeZone       helpers.Nullable[string] `json:"timezone"`
-	City           helpers.Nullable[string] `json:"city"`
-	Os             helpers.Nullable[string] `json:"os"`
-	Browser        helpers.Nullable[string] `json:"browser"`
-	UserAgent      helpers.Nullable[string] `json:"userAgent"`
-	Platform       helpers.Nullable[string] `json:"platform"`
-	IpAddress      helpers.Nullable[string] `json:"ipAddress"`
-	Method         helpers.Nullable[string] `json:"method"`
-	Status         helpers.Nullable[int]    `json:"status"`
+	Country        sqltype.Nullable[string] `json:"country"`
+	TimeZone       sqltype.Nullable[string] `json:"timezone"`
+	City           sqltype.Nullable[string] `json:"city"`
+	Os             sqltype.Nullable[string] `json:"os"`
+	Browser        sqltype.Nullable[string] `json:"browser"`
+	UserAgent      sqltype.Nullable[string] `json:"userAgent"`
+	Platform       sqltype.Nullable[string] `json:"platform"`
+	IpAddress      sqltype.Nullable[string] `json:"ipAddress"`
+	Method         sqltype.Nullable[string] `json:"method"`
+	Status         sqltype.Nullable[int]    `json:"status"`
 	OrganizationId string                   `json:"organizationId"`
 }
 
@@ -60,7 +60,7 @@ type GetShortData struct {
 	Short          string                   `json:"short"`
 	OriginalUrl    string                   `json:"originalUrl"`
 	Domain         string                   `json:"domain"`
-	Alias          helpers.Nullable[string] `json:"alias"`
+	Alias          sqltype.Nullable[string] `json:"alias"`
 	CreatedOn      time.Time                `json:"createdOn"`
 	ExpirationDate time.Time                `json:"expiryDate"`
 }

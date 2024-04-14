@@ -43,6 +43,9 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	//Report
 	router.POST("/api/v1/report/links", app.ExportService.GenerateShortLinkReport)
 
+	//statistics
+	router.GET("/api/v1/statistics", app.StatisticsService.GetShortStatistics)
+
 	//default path
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
