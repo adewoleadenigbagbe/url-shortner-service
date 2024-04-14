@@ -1,4 +1,4 @@
-package keyservice
+package linkservice
 
 import (
 	"database/sql"
@@ -20,24 +20,24 @@ const (
 	RootFolderPath = "backend"
 )
 
-type KeyGenerator struct {
+type ShortlinkGenerator struct {
 	db            *sql.DB
 	scheduleTimer *time.Ticker
 	done          chan bool
 }
 
-func (kg *KeyGenerator) Run(done chan os.Signal) {
+func (sg *ShortlinkGenerator) GenerateLink(done chan os.Signal) {
 	fmt.Println("Starting the key generation service..")
 	for {
 		select {
 		case <-done:
-			kg.scheduleTimer.Stop()
+			sg.scheduleTimer.Stop()
 			fmt.Println("Exiting key generator service ....")
 			return
-		case t := <-kg.scheduleTimer.C:
+		case t := <-sg.scheduleTimer.C:
 			fmt.Println("Tick at ....", t)
 			shortKey := helpers.RandStringBytesRmndr(characterLimit)
-			err := kg.saveKey(shortKey)
+			err := sg.insertlink(shortKey)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -45,16 +45,16 @@ func (kg *KeyGenerator) Run(done chan os.Signal) {
 	}
 }
 
-func (kg *KeyGenerator) saveKey(key string) error {
+func (sg *ShortlinkGenerator) insertlink(key string) error {
 	now := time.Now()
 	expirationDate := now.AddDate(expirySpan, 0, 0)
-	_, err := kg.db.Exec("INSERT INTO unusedshortlinks VALUES(?,?,?,?,?);",
+	_, err := sg.db.Exec("INSERT INTO unusedshortlinks VALUES(?,?,?,?,?);",
 		key, now, now, expirationDate, false)
 
 	return err
 }
 
-func NewKeyGenerator() *KeyGenerator {
+func NewShortlinkGenerator() *ShortlinkGenerator {
 	currentWorkingDirectory, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
@@ -71,7 +71,7 @@ func NewKeyGenerator() *KeyGenerator {
 		log.Fatal(err)
 	}
 
-	return &KeyGenerator{
+	return &ShortlinkGenerator{
 		db:            db,
 		scheduleTimer: time.NewTicker(2 * time.Minute),
 		done:          make(chan bool),

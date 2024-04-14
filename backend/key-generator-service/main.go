@@ -1,22 +1,20 @@
-package main
+package linkservice
 
 import (
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/adewoleadenigbagbe/url-shortner-service/key-generator-service/keyservice"
 )
 
-func main() {
+func Run() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	//ctx := context.WithValue(context.Background(), "sig", quit)
 
-	kg := keyservice.NewKeyGenerator()
+	sg := NewShortlinkGenerator()
 	go func(c chan os.Signal) {
-		kg.Run(c)
+		sg.GenerateLink(c)
 	}(quit)
 
 	<-quit
