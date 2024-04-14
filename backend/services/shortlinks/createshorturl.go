@@ -69,9 +69,9 @@ func (service UrlService) CreateShortLink(urlContext echo.Context) error {
 	short := helpers.GenerateShortLink(request.OriginalUrl)
 	now := time.Now()
 	expirationDate := now.AddDate(expirySpan, 0, 0)
-	_, err = service.Db.Exec("INSERT INTO shortlinks VALUES(?,?,?,?,?,?,?,?,?,?,?);",
+	_, err = service.Db.Exec("INSERT INTO shortlinks VALUES(?,?,?,?,?,?,?,?,?,?,?,?);",
 		shortId, short, request.OriginalUrl, request.DomainId, request.CustomAlias,
-		now, now, expirationDate, request.OrganizationId, request.UserId, false)
+		now, now, expirationDate, request.OrganizationId, request.UserId, request.Cloaking, false)
 
 	if err != nil {
 		return urlContext.JSON(http.StatusInternalServerError, []string{err.Error()})
