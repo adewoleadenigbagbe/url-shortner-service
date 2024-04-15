@@ -56,7 +56,7 @@ func (service StatisticsService) GetShortStatistics(statisticsContext echo.Conte
 		return statisticsContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	startDate, endDate := request.DateRangeType.GetRanges(request.StartDate, request.EndDate)
+	startDate, endDate := request.DateRangeType.GetRange(request.StartDate, request.EndDate)
 	if startDate.IsZero() || endDate.IsZero() {
 		return statisticsContext.JSON(http.StatusBadRequest, []string{"select a range date type"})
 	}

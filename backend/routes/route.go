@@ -46,6 +46,13 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	//statistics
 	router.GET("/api/v1/statistics", app.StatisticsService.GetShortStatistics)
 
+	//enums
+	router.GET("/api/v1/enum/date-range", app.EnumService.GetDateRanges)
+	router.GET("/api/v1/enum/pay-cycle", app.EnumService.GetPayCycle)
+	router.GET("/api/v1/enum/pay-plan", app.EnumService.GetPayPlan)
+	router.GET("/api/v1/enum/report-type", app.EnumService.GetReportType)
+	router.GET("/api/v1/enum/role", app.EnumService.GetRoles)
+
 	//default path
 	router.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
