@@ -1,6 +1,7 @@
 package enums
 
 import (
+	"sort"
 	"time"
 )
 
@@ -15,29 +16,48 @@ const (
 	Custom
 )
 
-var DateRangeMap = map[string]DateRange{
-	"Yesterday":  Yesterday,
-	"Today":      Today,
-	"Last7Days":  Last7Days,
-	"LastWeek":   LastWeek,
-	"Last30Days": Last30Days,
-	"Custom":     Custom,
+var DateRangeMap = map[DateRange]string{
+	Yesterday:  "Yesterday",
+	Today:      "Today",
+	Last7Days:  "Last7Days",
+	LastWeek:   "LastWeek",
+	Last30Days: "Last30Days",
+	Custom:     "Custom",
 }
 
 func (d DateRange) GetValues() []DateRange {
-	var values []DateRange
-	for _, v := range DateRangeMap {
-		values = append(values, v)
+	var keys []DateRange
+	for k := range DateRangeMap {
+		keys = append(keys, k)
 	}
 
-	return values
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+	return keys
 }
 
-func (d DateRange) GetValue(key string) DateRange {
-	return DateRangeMap[key]
+func (d DateRange) GetKeyValues() []EnumKeyValue[DateRange, string] {
+	var enumKeyValues []EnumKeyValue[DateRange, string]
+	for k, v := range DateRangeMap {
+		enumsKeyValue := EnumKeyValue[DateRange, string]{
+			Key:   k,
+			Value: v,
+		}
+		enumKeyValues = append(enumKeyValues, enumsKeyValue)
+	}
+
+	sort.Slice(enumKeyValues, func(i, j int) bool {
+		return enumKeyValues[i].Key < enumKeyValues[j].Key
+	})
+	return enumKeyValues
 }
 
-func (d DateRange) GetRanges(to, from time.Time) (time.Time, time.Time) {
+func (d DateRange) String() string {
+	return DateRangeMap[d]
+}
+
+func (d DateRange) GetRange(to, from time.Time) (time.Time, time.Time) {
 	var start time.Time
 	var end time.Time
 	now := time.Now()

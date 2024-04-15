@@ -1,5 +1,7 @@
 package enums
 
+import "sort"
+
 type ReportType string
 
 const (
@@ -7,20 +9,39 @@ const (
 	Csv   ReportType = "text/csv"
 )
 
-var ReportMap = map[string]ReportType{
-	"Excel": Excel,
-	"Csv":   Csv,
+var ReportMap = map[ReportType]string{
+	Excel: "Excel",
+	Csv:   "Csv",
 }
 
-func (d ReportType) GetValues() []ReportType {
-	var values []ReportType
-	for _, v := range ReportMap {
-		values = append(values, v)
+func (r ReportType) GetValues() []ReportType {
+	var keys []ReportType
+	for k := range ReportMap {
+		keys = append(keys, k)
 	}
 
-	return values
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+	return keys
 }
 
-func (p ReportType) GetValue(key string) ReportType {
-	return ReportMap[key]
+func (r ReportType) GetKeyValues() []EnumKeyValue[ReportType, string] {
+	var enumKeyValues []EnumKeyValue[ReportType, string]
+	for k, v := range ReportMap {
+		enumsKeyValue := EnumKeyValue[ReportType, string]{
+			Key:   k,
+			Value: v,
+		}
+		enumKeyValues = append(enumKeyValues, enumsKeyValue)
+	}
+
+	sort.Slice(enumKeyValues, func(i, j int) bool {
+		return enumKeyValues[i].Key < enumKeyValues[j].Key
+	})
+	return enumKeyValues
+}
+
+func (r ReportType) String() string {
+	return ReportMap[r]
 }

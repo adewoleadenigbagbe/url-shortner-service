@@ -12,7 +12,6 @@ type EnumService struct {
 
 func (service EnumService) GetDateRanges(enumContext echo.Context) error {
 	var d enums.DateRange
-
-	values := d.GetValues()
-	return enumContext.JSON(http.StatusOK, values)
+	keyValues := d.GetKeyValues()
+	return enumContext.JSON(http.StatusOK, keyValues)
 }
