@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"reflect"
 	"time"
@@ -31,7 +32,7 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 		return planContext.JSON(http.StatusBadRequest, []string{err.Error()})
 	}
 
-	row := service.Db.QueryRow(`SELECT organizations.TimeZone payplans.Id,payplans.Type from organizations
+	row := service.Db.QueryRow(`SELECT organizations.TimeZone, payplans.Id,payplans.Type from organizations
 	JOIN organizationpayplans ON organizations.Id = organizationpayplans.OrganizationId
 	JOIN payplans ON organizationpayplans.PayPlanId = payplans.Id
 	WHERE organizations.Id =? 
@@ -87,16 +88,16 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 			return planContext.JSON(http.StatusBadRequest, []string{err.Error()})
 		}
 
-		currentTime := time.Now().In(location)
 		var existingEffectiveDate time.Time
 		var existingEndDate time.Time
 		row3 := tx.QueryRow("SELECT EffectiveDate, EndDate FROM payschedules WHERE OrganizationId =? AND IsNext =? ORDER BY EffectiveDate desc LIMIT 1", request.OrganizationId, false)
 		err = row3.Scan(&existingEffectiveDate, &existingEndDate)
-		if err != nil {
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			tx.Rollback()
 			return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
 
+		currentTime := time.Now().In(location)
 		var isNext bool
 		var newEffectiveDate time.Time = currentTime
 		var newEndDate time.Time
@@ -124,5 +125,5 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 	}
 
 	tx.Commit()
-	return nil
+	return planContext.JSON(http.StatusOK, models.CreateOrganizationPlanResponse{OrganizationPayPlanId: organizationpayplanId})
 }

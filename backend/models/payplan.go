@@ -7,3 +7,7 @@ type CreateOrganizationPlanRequest struct {
 	PayCycle       enums.PayCycle `json:"payCycle"`
 	OrganizationId string         `header:"X-OrganizationId"`
 }
+
+type CreateOrganizationPlanResponse struct {
+	OrganizationPayPlanId string `json:"organizationPayPlanId"`
+}
