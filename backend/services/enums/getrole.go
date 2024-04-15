@@ -10,6 +10,6 @@ import (
 func (service EnumService) GetRoles(enumContext echo.Context) error {
 	var d enums.Role
 
-	values := d.GetValues()
+	values := d.GetKeyValues()
 	return enumContext.JSON(http.StatusOK, values)
 }

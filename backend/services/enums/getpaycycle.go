@@ -10,6 +10,6 @@ import (
 func (service EnumService) GetPayCycle(enumContext echo.Context) error {
 	var d enums.PayCycle
 
-	values := d.GetValues()
+	values := d.GetKeyValues()
 	return enumContext.JSON(http.StatusOK, values)
 }

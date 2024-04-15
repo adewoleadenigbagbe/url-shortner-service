@@ -10,6 +10,6 @@ import (
 func (service EnumService) GetPayPlan(enumContext echo.Context) error {
 	var d enums.PayPlan
 
-	values := d.GetValues()
+	values := d.GetKeyValues()
 	return enumContext.JSON(http.StatusOK, values)
 }
