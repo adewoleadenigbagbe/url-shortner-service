@@ -4,8 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"log"
+	"math"
 	"math/rand"
 	"net/url"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -51,4 +53,13 @@ func GeneratePassword(text string) string {
 func IsValidUrl(query string) bool {
 	_, err := url.ParseRequestURI(query)
 	return err == nil
+}
+
+func StartOfDay(date time.Time) time.Time {
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+}
+
+func EndOfDay(date time.Time) time.Time {
+	nsec := int(math.Pow10(9)) - 1
+	return time.Date(date.Year(), date.Month(), date.Day(), 11, 59, 59, nsec, date.Location())
 }

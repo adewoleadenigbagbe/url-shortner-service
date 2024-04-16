@@ -9,6 +9,8 @@ import (
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
 	"github.com/adewoleadenigbagbe/url-shortner-service/models"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func (service UrlService) RedirectShort(urlContext echo.Context) error {
@@ -32,6 +34,8 @@ func (service UrlService) RedirectShort(urlContext echo.Context) error {
 		return urlContext.JSON(http.StatusNotFound, []string{"link does not exist"})
 	}
 
+	setFieldToTitleCase(request)
+
 	id := sequentialguid.NewSequentialGuid().String()
 	createdOn := time.Now()
 	_, err = service.Db.Exec("INSERT INTO accesslogs VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
@@ -45,4 +49,26 @@ func (service UrlService) RedirectShort(urlContext echo.Context) error {
 
 	urlContext.Response().Header().Set("Location", originalUrl)
 	return urlContext.JSON(http.StatusFound, nil)
+}
+
+func setFieldToTitleCase(request *models.RedirectShortRequest) {
+	if request.Browser.Valid {
+		request.Browser.Val = cases.Title(language.English, cases.Compact).String(request.Browser.Val)
+	}
+
+	if request.City.Valid {
+		request.City.Val = cases.Title(language.English, cases.Compact).String(request.City.Val)
+	}
+
+	if request.Country.Valid {
+		request.Country.Val = cases.Title(language.English, cases.Compact).String(request.Country.Val)
+	}
+
+	if request.Os.Valid {
+		request.Os.Val = cases.Title(language.English, cases.Compact).String(request.Os.Val)
+	}
+
+	if request.Platform.Valid {
+		request.Platform.Val = cases.Title(language.English, cases.Compact).String(request.Platform.Val)
+	}
 }

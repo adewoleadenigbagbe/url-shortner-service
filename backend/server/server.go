@@ -20,7 +20,7 @@ type ApplicationServer struct {
 	AppMiddleWare *middlewares.AppMiddleware
 }
 
-func (server *ApplicationServer) Start() {
+func (server *ApplicationServer) start() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -51,4 +51,21 @@ func (server *ApplicationServer) Start() {
 	if err := server.BaseApp.Echo.Shutdown(ctx); err != nil {
 		server.BaseApp.Echo.Logger.Fatal(err)
 	}
+}
+
+func InitializeAPI() {
+	app, err := core.ConfigureAppDependencies()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := ApplicationServer{
+		BaseApp: app,
+		AppMiddleWare: &middlewares.AppMiddleware{
+			Db:  app.Db,
+			Rdb: app.Rdb,
+		},
+	}
+
+	server.start()
 }

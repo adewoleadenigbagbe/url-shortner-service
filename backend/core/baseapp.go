@@ -9,8 +9,11 @@ import (
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
 	auth "github.com/adewoleadenigbagbe/url-shortner-service/services/auth"
 	domain "github.com/adewoleadenigbagbe/url-shortner-service/services/domain"
+	enum "github.com/adewoleadenigbagbe/url-shortner-service/services/enums"
+	export "github.com/adewoleadenigbagbe/url-shortner-service/services/export"
 	plan "github.com/adewoleadenigbagbe/url-shortner-service/services/payplan"
 	link "github.com/adewoleadenigbagbe/url-shortner-service/services/shortlinks"
+	statistic "github.com/adewoleadenigbagbe/url-shortner-service/services/statistics"
 	tag "github.com/adewoleadenigbagbe/url-shortner-service/services/tags"
 	teams "github.com/adewoleadenigbagbe/url-shortner-service/services/teams"
 	user "github.com/adewoleadenigbagbe/url-shortner-service/services/user"
@@ -23,15 +26,18 @@ const (
 )
 
 type BaseApp struct {
-	Echo          *echo.Echo
-	Db            *sql.DB
-	Rdb           *redis.Client
-	AuthService   auth.AuthService
-	UrlService    link.UrlService
-	DomainService domain.DomainService
-	UserService   user.UserService
-	TeamService   teams.TeamService
-	TagService    tag.TagService
+	Echo              *echo.Echo
+	Db                *sql.DB
+	Rdb               *redis.Client
+	AuthService       auth.AuthService
+	UrlService        link.UrlService
+	DomainService     domain.DomainService
+	UserService       user.UserService
+	TeamService       teams.TeamService
+	TagService        tag.TagService
+	ExportService     export.ExportService
+	StatisticsService statistic.StatisticsService
+	EnumService       enum.EnumService
 	PlanService   plan.PlanService
 }
 
@@ -80,6 +86,13 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 		TagService: tag.TagService{
 			Db: db,
 		},
+		ExportService: export.ExportService{
+			Db: db,
+		},
+		StatisticsService: statistic.StatisticsService{
+			Db: db,
+		},
+		EnumService: enum.EnumService{},
 		PlanService: plan.PlanService{
 			Db: db,
 		},
