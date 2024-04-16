@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS organizationpayplans(
    OrganizationId CHAR(36) NOT NULL,
    CreatedOn DATETIME NOT NULL,
    ModifiedOn DATETIME NOT NULL,
-   IsLatest BOOLEAN NOT NULL
+   Status INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_organizationpayplans_PayPlanId ON organizationpayplans (PayPlanId);
 CREATE INDEX IF NOT EXISTS idx_organizationpayplans_OrganizationId ON organizationpayplans (OrganizationId);
