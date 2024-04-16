@@ -2,9 +2,7 @@ package services
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
-	"reflect"
 	"time"
 
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
@@ -36,9 +34,9 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 	JOIN organizationpayplans ON organizations.Id = organizationpayplans.OrganizationId
 	JOIN payplans ON organizationpayplans.PayPlanId = payplans.Id
 	WHERE organizations.Id =? 
-	AND organizationpayplans.IsLatest =?
+	AND organizationpayplans.Status =?
 	AND payplans.IsLatest =?`,
-		request.OrganizationId, true, true)
+		request.OrganizationId, enums.Current, true)
 
 	var timezone string
 	var existingPlanId string
@@ -61,9 +59,9 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 
 	tx, err := service.Db.Begin()
 	if err != nil {
-		return err
+		return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
-	_, err = tx.Exec("UPDATE organizationpayplans SET IsLatest =? WHERE OrganizationId =?", false, request.OrganizationId)
+	_, err = tx.Exec("UPDATE organizationpayplans SET Status =? WHERE OrganizationId =? AND Status =?", enums.Archived, request.OrganizationId, enums.Upcoming)
 	if err != nil {
 		tx.Rollback()
 		return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
@@ -74,39 +72,22 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 	}
 
 	organizationpayplanId := sequentialguid.NewSequentialGuid().String()
-	now := time.Now()
-	_, err = tx.Exec("INSERT INTO organizationpayplans VALUES(?,?,?,?,?,?,?);",
-		organizationpayplanId, request.PayCycle, request.PayplanId, request.OrganizationId, now, now, true)
-	if err != nil {
-		tx.Rollback()
-		return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
-	}
+	var status enums.PlanStatus = enums.Upcoming
+	if existingPlanType == enums.Free {
+		_, err = tx.Exec("UPDATE organizationpayplans SET Status =? WHERE OrganizationId =? AND Status =?", enums.Archived, request.OrganizationId, enums.Current)
+		if err != nil {
+			tx.Rollback()
+			return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
+		}
 
-	if planType != enums.Free {
 		location, err := time.LoadLocation(timezone)
 		if err != nil {
 			return planContext.JSON(http.StatusBadRequest, []string{err.Error()})
 		}
 
-		var existingEffectiveDate time.Time
-		var existingEndDate time.Time
-		row3 := tx.QueryRow("SELECT EffectiveDate, EndDate FROM payschedules WHERE OrganizationId =? AND IsNext =? ORDER BY EffectiveDate desc LIMIT 1", request.OrganizationId, false)
-		err = row3.Scan(&existingEffectiveDate, &existingEndDate)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			tx.Rollback()
-			return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
-		}
-
 		currentTime := time.Now().In(location)
-		var isNext bool
 		var newEffectiveDate time.Time = currentTime
 		var newEndDate time.Time
-		if reflect.ValueOf(existingEffectiveDate).IsZero() || currentTime.After(existingEndDate) {
-			isNext = false
-		} else if existingEffectiveDate.Before(currentTime) && currentTime.Before(existingEndDate) {
-			isNext = true
-			newEffectiveDate = existingEndDate.Add(1 * time.Second)
-		}
 
 		if request.PayCycle == enums.Monthly {
 			newEndDate = newEffectiveDate.AddDate(0, 1, 0)
@@ -117,11 +98,21 @@ func (service PlanService) ChangePayPlan(planContext echo.Context) error {
 		payScheduleId := sequentialguid.NewSequentialGuid().String()
 		payScheduleCreatedOn := time.Now()
 		_, err = tx.Exec("INSERT INTO payschedules VALUES(?,?,?,?,?,?,?,?);",
-			payScheduleId, newEffectiveDate, newEndDate, payScheduleCreatedOn, payScheduleCreatedOn, request.OrganizationId, organizationpayplanId, isNext)
+			payScheduleId, newEffectiveDate, newEndDate, payScheduleCreatedOn, payScheduleCreatedOn, request.OrganizationId, organizationpayplanId, false)
 		if err != nil {
 			tx.Rollback()
 			return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 		}
+
+		status = enums.Current
+	}
+
+	now := time.Now()
+	_, err = tx.Exec("INSERT INTO organizationpayplans VALUES(?,?,?,?,?,?,?);",
+		organizationpayplanId, request.PayCycle, request.PayplanId, request.OrganizationId, now, now, status)
+	if err != nil {
+		tx.Rollback()
+		return planContext.JSON(http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	tx.Commit()

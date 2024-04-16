@@ -85,9 +85,9 @@ func (service *BillingService) generateBilling() {
 		row := service.db.QueryRow(`SELECT organizationpayplans.Id, organizationpayplans.PayPlanId,organizationpayplans.PayCycle,payplans.Type, payplans.Amount FROM payplans 
 			JOIN organizationpayplans ON payplans.Id = organizationpayplans.PayPlanId
 			WHERE organizationpayplans.OrganizationId =? 
-			AND organizationpayplans.IsLatest =? 
+			AND organizationpayplans.Status =? 
 			AND payplans.IsLatest =?`,
-			organizationInfo.Id, true, true)
+			organizationInfo.Id, enums.Current, true)
 
 		var organizationPayPlanInfo OrganizationPayPlanInfo
 		err = row.Scan(&organizationPayPlanInfo.Id, &organizationPayPlanInfo.PayPlanId, &organizationPayPlanInfo.PayCycle, &organizationPayPlanInfo.PlayType, &organizationPayPlanInfo.Amount)

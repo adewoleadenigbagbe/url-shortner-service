@@ -2,7 +2,6 @@ package linkservice
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
