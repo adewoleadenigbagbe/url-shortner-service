@@ -10,6 +10,7 @@ There are two services for this project which are
 
 * Rest Api Service
 * Billing Service
+* Key Generation Service
 
 Explain each service
 
