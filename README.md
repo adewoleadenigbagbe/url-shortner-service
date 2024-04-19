@@ -1,11 +1,9 @@
 # Url Shortner Service
 
-A Service that take a long Url and convert to a shortned for easier use
+A URL shortener is a tool that takes a long URL and converts it into a shorter, more manageable version. It's an essential tool for anyone looking to share links efficiently and effectively. For example you take a long url like this 
+https://www.marriott.com/molestie/sed/justo/pellentesque/viverra/pede.json?justo=eget&in=congue&blandit=eget&ultrices=sempe and shorten it like this https://www.link.ly/h33cqkX.
 
-Allow users
-
-Explain about plans
-
+This project allow for individual and business manage their shortlinks as well detailed anyalytics by choosing the plan deemed fit for them
 
 ## Components
 There are two services for this project which are 
@@ -16,7 +14,14 @@ There are two services for this project which are
 Explain each service
 
 ## Features Implementation
-Create 
+* Shortlink Management
+* Multiple Teams for business to manage users with role
+* Detailed Link Analytics
+* Bulk links Import
+* Multiple custom domains
+* Tags management for link
+* Link Data Export
+* Link cloaking
 
 
 ## Database Design
@@ -26,7 +31,10 @@ Create
 
 
 ## Dependencies
+* SQLite3
+* Redis
 
 ## Upcoming Features
+Frontend implementation is coming soon. If you are interested in building it , please send an Email
 
 
