@@ -51,12 +51,12 @@ type PayScheduleInfo struct {
 }
 
 func (service *BillingService) Run(done chan os.Signal) {
-	fmt.Println("Starting the key generation service..")
+	fmt.Println("Starting the billing service..")
 	for {
 		select {
 		case <-done:
 			service.scheduleTimer.Stop()
-			fmt.Println("Exiting key generator service ....")
+			fmt.Println("Exiting billing service ....")
 			return
 		case t := <-service.scheduleTimer.C:
 			fmt.Println("Tick at ....", t)
@@ -76,7 +76,7 @@ func (service *BillingService) generateBilling() {
 	var organizationInfos []OrganizationInfo
 	for rows.Next() {
 		var organizationInfo OrganizationInfo
-		err = rows.Scan(&organizationInfo.Id, organizationInfo.Name, &organizationInfo.Timezone)
+		err = rows.Scan(&organizationInfo.Id, &organizationInfo.Name, &organizationInfo.Timezone)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,25 +84,26 @@ func (service *BillingService) generateBilling() {
 	}
 
 	for _, organizationInfo := range organizationInfos {
-		rows, err := service.db.Query(`SELECT organizationpayplans.Id, organizationpayplans.PayPlanId,organizationpayplans.PayCycle,payplans.Type, payplans.Amount FROM payplans
+		rows, err := service.db.Query(`SELECT organizationpayplans.Id, organizationpayplans.PayPlanId,organizationpayplans.PayCycle,payplans.Type,	
+		 payplans.Amount,organizationpayplans.Status FROM payplans
 			JOIN organizationpayplans ON payplans.Id = organizationpayplans.PayPlanId
 			WHERE organizationpayplans.OrganizationId =?
 			AND payplans.IsLatest =?
-			AND organizationpayplans.Status =? OR organizationpayplans.Status =?`,
+			AND (organizationpayplans.Status =? OR organizationpayplans.Status =?)`,
 			organizationInfo.Id, true, enums.Current, enums.Upcoming)
 
 		if err != nil {
-			fmt.Printf("Error getting organization pay plan: %s for specific organization: %s ", err.Error(), organizationInfo.Name)
+			fmt.Printf("Error getting organization pay plan: %s for specific organization: %s \n", err.Error(), organizationInfo.Name)
 			continue
-
 		}
 
 		var organizationPayPlanInfos []OrganizationPayPlanInfo
 		for rows.Next() {
 			var organizationPayPlanInfo OrganizationPayPlanInfo
-			err = rows.Scan(&organizationPayPlanInfo.Id, &organizationPayPlanInfo.PayPlanId, &organizationPayPlanInfo.PayCycle, &organizationPayPlanInfo.PlayType, &organizationPayPlanInfo.Amount)
+			err = rows.Scan(&organizationPayPlanInfo.Id, &organizationPayPlanInfo.PayPlanId, &organizationPayPlanInfo.PayCycle,
+				&organizationPayPlanInfo.PlayType, &organizationPayPlanInfo.Amount, &organizationPayPlanInfo.Status)
 			if err != nil {
-				fmt.Printf("Error scanning organization pay plan: %s for specific organization: %s ", err.Error(), organizationInfo.Name)
+				fmt.Printf("Error scanning organization pay plan: %s for specific organization: %s \n", err.Error(), organizationInfo.Name)
 				continue
 			}
 			organizationPayPlanInfos = append(organizationPayPlanInfos, organizationPayPlanInfo)
@@ -110,7 +111,7 @@ func (service *BillingService) generateBilling() {
 
 		location, err := time.LoadLocation(organizationInfo.Timezone)
 		if err != nil {
-			fmt.Printf("Error loading location: %s for specific organization : %s ", err.Error(), organizationInfo.Name)
+			fmt.Printf("Error loading location: %s for specific organization : %s \n", err.Error(), organizationInfo.Name)
 			continue
 		}
 
@@ -130,7 +131,7 @@ func (service *BillingService) generateBilling() {
 			payScheduleRow := service.db.QueryRow("SELECT Id,EffectiveDate, EndDate FROM payschedules WHERE OrganizationId =? ORDER BY EffectiveDate DESC LIMIT 1", organizationInfo.Id)
 			err = payScheduleRow.Scan(&currentPayScheduleInfo.Id, &currentPayScheduleInfo.EffectiveDate, &currentPayScheduleInfo.EndDate)
 			if err != nil {
-				fmt.Printf("Error getting organization pay schedules : %s for specific organization: %s ", err.Error(), organizationInfo.Name)
+				fmt.Printf("Error getting organization pay schedules : %s for specific organization: %s \n", err.Error(), organizationInfo.Name)
 				continue
 			}
 
@@ -150,31 +151,54 @@ func (service *BillingService) generateBilling() {
 				currentPayScheduleInfo.EffectiveDate, currentPayScheduleInfo.EndDate, currentPayScheduleInfo.Id, organizationInfo.Id, createdOn, createdOn)
 			if err != nil {
 				tx.Rollback()
-				fmt.Printf("Error insert revenue changes : %s for specific organization: %s ", err.Error(), organizationInfo.Name)
+				fmt.Printf("Error insert revenue changes : %s for specific organization: %s \n", err.Error(), organizationInfo.Name)
 			}
 
 			upcomingOrganizationPlan, ok2 := lo.Find(organizationPayPlanInfos, func(info OrganizationPayPlanInfo) bool {
 				return info.Status == enums.Upcoming
 			})
 
-			if !ok2 && reflect.ValueOf(upcomingOrganizationPlan).IsZero() {
-				newPayScheduleId := sequentialguid.NewSequentialGuid().String()
-				effectiveDate := currentPayScheduleInfo.EndDate.Add(1 * time.Second)
-				var endDate time.Time
-				nextPayScheduleCreatedOn := time.Now()
+			var newOrganizationPlanId string
+			effectiveDate := currentPayScheduleInfo.EndDate.Add(1 * time.Second)
+			var endDate time.Time
 
+			if !ok2 && reflect.ValueOf(upcomingOrganizationPlan).IsZero() {
+				newOrganizationPlanId = currentOrganizationPlan.Id
 				if currentOrganizationPlan.PayCycle == enums.Monthly {
 					endDate = effectiveDate.AddDate(0, 1, 0)
 				} else if currentOrganizationPlan.PayCycle == enums.Yearly {
 					endDate = effectiveDate.AddDate(1, 0, 0)
 				}
-
-				_, err = tx.Exec("INSERT INTO payschedules VALUES(?,?,?,?,?,?,?,?);", newPayScheduleId, effectiveDate,
-					endDate, nextPayScheduleCreatedOn, nextPayScheduleCreatedOn, organizationInfo.Id, currentOrganizationPlan.Id, false)
-				if err != nil {
-					tx.Rollback()
-					fmt.Printf("Error insert revenue changes : %s for specific organization: %s ", err.Error(), organizationInfo.Name)
+			} else {
+				if upcomingOrganizationPlan.PlayType == enums.Team {
+					continue
 				}
+
+				if upcomingOrganizationPlan.PayCycle == enums.Monthly {
+					endDate = effectiveDate.AddDate(0, 1, 0)
+				} else if upcomingOrganizationPlan.PayCycle == enums.Yearly {
+					endDate = effectiveDate.AddDate(1, 0, 0)
+				}
+
+				newOrganizationPlanId = upcomingOrganizationPlan.Id
+				_, err = tx.Exec("UPDATE organizationpayplans SET status =? WHERE Id =?", enums.Archived, currentOrganizationPlan.Id)
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				_, err = tx.Exec("UPDATE organizationpayplans SET status =? WHERE Id =?", enums.Current, upcomingOrganizationPlan.Id)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+
+			newPayScheduleId := sequentialguid.NewSequentialGuid().String()
+			nextPayScheduleCreatedOn := time.Now()
+			_, err = tx.Exec("INSERT INTO payschedules VALUES(?,?,?,?,?,?,?,?);", newPayScheduleId, effectiveDate,
+				endDate, nextPayScheduleCreatedOn, nextPayScheduleCreatedOn, organizationInfo.Id, newOrganizationPlanId, false)
+			if err != nil {
+				tx.Rollback()
+				fmt.Printf("Error insert revenue changes : %s for specific organization: %s \n", err.Error(), organizationInfo.Name)
 			}
 
 			tx.Commit()

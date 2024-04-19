@@ -34,6 +34,8 @@ Explain each service
 * SQLite3
 * Redis
 
+## Usage
+
 ## Upcoming Features
 Frontend implementation is coming soon. If you are interested in building it , please send an Email
 

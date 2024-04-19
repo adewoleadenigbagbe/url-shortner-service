@@ -1,4 +1,4 @@
-package main
+package billing
 
 import (
 	"fmt"
@@ -6,12 +6,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
-	billing "github.com/adewoleadenigbagbe/url-shortner-service/billing-service/service.go"
 )
 
-func main() {
-	service, err := billing.NewBillingService()
+func Run() {
+	service, err := NewBillingService()
 	if err != nil {
 		log.Fatal(err)
 	}
