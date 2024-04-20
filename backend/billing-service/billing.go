@@ -183,11 +183,13 @@ func (service *BillingService) generateBilling() {
 				newOrganizationPlanId = upcomingOrganizationPlan.Id
 				_, err = tx.Exec("UPDATE organizationpayplans SET status =? WHERE Id =?", enums.Archived, currentOrganizationPlan.Id)
 				if err != nil {
+					tx.Rollback()
 					fmt.Println(err)
 				}
 
 				_, err = tx.Exec("UPDATE organizationpayplans SET status =? WHERE Id =?", enums.Current, upcomingOrganizationPlan.Id)
 				if err != nil {
+					tx.Rollback()
 					fmt.Println(err)
 				}
 			}
