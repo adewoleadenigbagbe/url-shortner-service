@@ -89,7 +89,7 @@ func (service AuthService) RegisterUser(authContext echo.Context) error {
 	//organization payplan
 	organizationPlanId := sequentialguid.NewSequentialGuid().String()
 	planCreatedOn := time.Now()
-	_, err = tx.Exec("INSERT INTO organizationpayplans VALUES(?,?,?,?,?,?,?);", organizationPlanId, enums.None, payPlanId, organizationId, planCreatedOn, planCreatedOn, true)
+	_, err = tx.Exec("INSERT INTO organizationpayplans VALUES(?,?,?,?,?,?,?);", organizationPlanId, enums.None, payPlanId, organizationId, planCreatedOn, planCreatedOn, enums.Current)
 	if err != nil {
 		tx.Rollback()
 		return authContext.JSON(http.StatusInternalServerError, []string{err.Error()})

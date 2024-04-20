@@ -43,9 +43,9 @@ func CheckUserOrganization(db *sql.DB, id string) (bool, error) {
 
 func CheckPayPlan(db *sql.DB, id string) (enums.PayPlan, error) {
 	query := `SELECT payplans.Type FROM payplans JOIN organizationpayplans ON  payplans.Id = organizationpayplans.PayPlanId
-	WHERE organizationpayplans.OrganizationId=? AND payplans.IsLatest=? AND organizationpayplans.IsLatest=?`
+	WHERE organizationpayplans.OrganizationId=? AND payplans.IsLatest=? AND organizationpayplans.Status=?`
 	var planType enums.PayPlan
-	err := db.QueryRow(query, id, true, true).Scan(&planType)
+	err := db.QueryRow(query, id, true, enums.Current).Scan(&planType)
 	if err != nil {
 		return 0, err
 	}

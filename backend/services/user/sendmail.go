@@ -101,8 +101,8 @@ func GetUserCount(db *sql.DB, id string) (enums.PayPlan, int, error) {
 	AND users.IsDeprecated=? 
 	AND organizations.IsDeprecated=?
 	AND payplans.IsLatest=?
-	AND organizationpayplans.IsLatest=?`
-	err := db.QueryRow(query, id, false, false, true, true).Scan(&planType, &count)
+	AND organizationpayplans.Status=?`
+	err := db.QueryRow(query, id, false, false, true, enums.Current).Scan(&planType, &count)
 	if err != nil {
 		return 0, 0, err
 	}
