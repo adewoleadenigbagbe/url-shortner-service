@@ -1,0 +1,41 @@
+version: '1.0'
+
+services:
+  web:
+    container_name: url-shortner-rest-api
+    build: .
+    ports: 
+      - 8321:8321 
+    restart: on-failure
+    depends_on:
+      - redis   # this for other services.
+      - sqlite3        
+    networks:
+      - networkstack
+
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    environment: 
+      - REDIS_HOST=${REDIS_HOST} 
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    restart: always
+    networks:
+      - networkstack
+
+  sqlite3:
+    image: python:3.9-alpine
+    container_name: my-sqlite3
+    command: ["sh", "-c", "apk add --no-cache sqlite && python -m pip install sqlite-utils && tail -f /dev/null"]
+    volumes:
+      - ./data:/data
+    restart: always
+    networks:
+      - networkstack
+
+# Networks to be created to facilitate communication between containers
+networks:
+  networkstack:
+    driver: bridge
