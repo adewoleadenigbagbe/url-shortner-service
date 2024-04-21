@@ -22,11 +22,6 @@ type ApplicationServer struct {
 }
 
 func (server *ApplicationServer) start() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	//set echo log
 	server.BaseApp.Echo.Logger.SetLevel(log.INFO)
 
@@ -56,6 +51,12 @@ func (server *ApplicationServer) start() {
 }
 
 func InitializeAPI() {
+	err := godotenv.Load(".env")
+	fmt.Println("err here : ", err)
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	app, err := core.ConfigureAppDependencies()
 	if err != nil {
 		log.Fatal(err)
