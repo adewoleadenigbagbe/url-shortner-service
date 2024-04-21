@@ -16,7 +16,7 @@ import (
 const (
 	characterLimit = 8
 	expirySpan     = 1
-	dbFilePath     = "urlshortnerDB.db"
+	dbFilePath     = "data/urlshortnerDB.db"
 	RootFolderPath = "backend"
 )
 

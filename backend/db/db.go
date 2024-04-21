@@ -82,6 +82,7 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 	}
 
 	index := strings.Index(currentWorkingDirectory, TargetFolderPath)
+	
 	if index == -1 {
 		return errors.New("app Root Folder Path not found")
 	}

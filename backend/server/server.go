@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -37,7 +38,8 @@ func (server *ApplicationServer) start() {
 
 	// Start server
 	go func() {
-		if err := server.BaseApp.Echo.Start(":8653"); err != nil && err != http.ErrServerClosed {
+		port := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
+		if err := server.BaseApp.Echo.Start(port); err != nil && err != http.ErrServerClosed {
 			server.BaseApp.Echo.Logger.Fatal("shutting down the server")
 		}
 	}()

@@ -1,11 +1,11 @@
 version: '1.0'
 
 services:
-  web:
+  web-api:
     container_name: url-shortner-rest-api
     build: .
     ports: 
-      - 8321:8321 
+      - 8653:8653 
     restart: on-failure
     depends_on:
       - redis   # this for other services.
@@ -17,10 +17,10 @@ services:
     image: redis:latest
     container_name: my-redis
     ports:
-      - "6379:6379"
-    environment: 
-      - REDIS_HOST=${REDIS_HOST} 
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - 6379:6379
+    # environment: 
+    #   - REDIS_HOST=${REDIS_HOST} 
+    #   - REDIS_PASSWORD=${REDIS_PASSWORD}
     restart: always
     networks:
       - networkstack

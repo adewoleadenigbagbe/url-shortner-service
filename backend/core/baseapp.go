@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"time"
 
@@ -21,7 +22,7 @@ import (
 )
 
 const (
-	dbFile = "urlshortnerDB.db"
+	dbFile = "data/urlshortnerDB.db"
 )
 
 type BaseApp struct {
@@ -40,9 +41,10 @@ type BaseApp struct {
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
-	//connect to sqllite
+	//connect to sqlite
 	db, err := database.ConnectToSQLite(dbFile)
 	if err != nil {
+		fmt.Println("here aaaa")
 		return nil, err
 	}
 
