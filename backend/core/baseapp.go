@@ -12,6 +12,7 @@ import (
 	domain "github.com/adewoleadenigbagbe/url-shortner-service/services/domain"
 	enum "github.com/adewoleadenigbagbe/url-shortner-service/services/enums"
 	export "github.com/adewoleadenigbagbe/url-shortner-service/services/export"
+	plan "github.com/adewoleadenigbagbe/url-shortner-service/services/payplan"
 	link "github.com/adewoleadenigbagbe/url-shortner-service/services/shortlinks"
 	statistic "github.com/adewoleadenigbagbe/url-shortner-service/services/statistics"
 	tag "github.com/adewoleadenigbagbe/url-shortner-service/services/tags"
@@ -38,6 +39,7 @@ type BaseApp struct {
 	ExportService     export.ExportService
 	StatisticsService statistic.StatisticsService
 	EnumService       enum.EnumService
+	PlanService   plan.PlanService
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
@@ -97,6 +99,9 @@ func ConfigureAppDependencies() (*BaseApp, error) {
 			Db: db,
 		},
 		EnumService: enum.EnumService{},
+		PlanService: plan.PlanService{
+			Db: db,
+		},
 	}
 
 	return app, nil

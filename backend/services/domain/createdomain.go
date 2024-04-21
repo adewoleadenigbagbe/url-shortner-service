@@ -104,9 +104,9 @@ func GetCustomDomainCount(db *sql.DB, id string) (sqltype.Nullable[enums.PayPlan
 	AND domains.IsDeprecated=?
 	AND domains.IsCustom=?
 	AND payplans.IsLatest=?
-	AND organizationpayplans.IsLatest=?`
+	AND organizationpayplans.Status=?`
 
-	err := db.QueryRow(query, id, false, true, true, true).Scan(&planType, &count)
+	err := db.QueryRow(query, id, false, true, true, enums.Current).Scan(&planType, &count)
 	if err != nil {
 		return sqltype.NewNullable(enums.PayPlan(0), false), 0, err
 	}
