@@ -51,8 +51,7 @@ func (server *ApplicationServer) start() {
 }
 
 func InitializeAPI() {
-	err := godotenv.Load(".env")
-	fmt.Println("err here : ", err)
+	err := godotenv.Load(".env.example")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
