@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/adewoleadenigbagbe/url-shortner-service/core"
-	middlewares "github.com/adewoleadenigbagbe/url-shortner-service/middleware"
-	"github.com/adewoleadenigbagbe/url-shortner-service/routes"
+	"github.com/adewoleadenigbagbe/url-shortner-service/apis/core"
+	middlewares "github.com/adewoleadenigbagbe/url-shortner-service/apis/middleware"
+	"github.com/adewoleadenigbagbe/url-shortner-service/apis/routes"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"

@@ -2,13 +2,11 @@ package billing
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"time"
 
 	sequentialguid "github.com/adewoleadenigbagbe/sequential-guid"
@@ -20,8 +18,7 @@ import (
 const (
 	characterLimit = 8
 	expirySpan     = 1
-	dbFilePath     = "urlshortnerDB.db"
-	RootFolderPath = "backend"
+	dbFilePath     = "./data/urlshortnerDB.db"
 )
 
 type BillingService struct {
@@ -209,18 +206,12 @@ func (service *BillingService) generateBilling() {
 }
 
 func NewBillingService() (*BillingService, error) {
-	currentWorkingDirectory, err := os.Getwd()
+	path, err := filepath.Abs(dbFilePath)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
-	index := strings.Index(currentWorkingDirectory, RootFolderPath)
-	if index == -1 {
-		return nil, errors.New("app Root Folder Path not found")
-	}
-
-	filePath := filepath.Join(currentWorkingDirectory[:index], RootFolderPath, dbFilePath)
-	db, err := database.ConnectToSQLite(filePath)
+	db, err := database.ConnectToSQLite(path)
 	if err != nil {
 		return nil, err
 	}

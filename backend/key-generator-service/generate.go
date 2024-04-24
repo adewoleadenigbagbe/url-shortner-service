@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	database "github.com/adewoleadenigbagbe/url-shortner-service/db"
@@ -16,8 +15,7 @@ import (
 const (
 	characterLimit = 8
 	expirySpan     = 1
-	dbFilePath     = "urlshortnerDB.db"
-	RootFolderPath = "backend"
+	dbFilePath     = "./data/urlshortnerDB.db"
 )
 
 type ShortlinkGenerator struct {
@@ -55,18 +53,11 @@ func (sg *ShortlinkGenerator) insertlink(key string) error {
 }
 
 func NewShortlinkGenerator() *ShortlinkGenerator {
-	currentWorkingDirectory, err := os.Getwd()
+	path, err := filepath.Abs(dbFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	index := strings.Index(currentWorkingDirectory, RootFolderPath)
-	if index == -1 {
-		log.Fatal("App Root Folder Path not found")
-	}
-
-	filePath := filepath.Join(currentWorkingDirectory[:index], RootFolderPath, dbFilePath)
-	db, err := database.ConnectToSQLite(filePath)
+	db, err := database.ConnectToSQLite(path)
 	if err != nil {
 		log.Fatal(err)
 	}

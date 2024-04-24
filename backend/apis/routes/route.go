@@ -3,8 +3,8 @@ package routes
 import (
 	"net/http"
 
-	"github.com/adewoleadenigbagbe/url-shortner-service/core"
-	middlewares "github.com/adewoleadenigbagbe/url-shortner-service/middleware"
+	"github.com/adewoleadenigbagbe/url-shortner-service/apis/core"
+	middlewares "github.com/adewoleadenigbagbe/url-shortner-service/apis/middleware"
 	"github.com/labstack/echo/v4"
 )
 

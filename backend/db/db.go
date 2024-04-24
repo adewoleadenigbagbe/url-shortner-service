@@ -6,13 +6,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-)
-
-var (
-	TargetFolderPath = "backend"
 )
 
 type CommandType uint8
@@ -76,17 +71,11 @@ func executeTableCmd(db *sql.DB, cmdType CommandType) error {
 		query string
 		err   error
 	)
-	currentWorkingDirectory, err := os.Getwd()
+
+	path, err := filepath.Abs("./db")
 	if err != nil {
 		return err
 	}
-
-	index := strings.Index(currentWorkingDirectory, TargetFolderPath)
-	if index == -1 {
-		return errors.New("app Root Folder Path not found")
-	}
-
-	path := filepath.Join(currentWorkingDirectory[:index], TargetFolderPath, "db")
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return err

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/adewoleadenigbagbe/url-shortner-service/server"
+	"github.com/adewoleadenigbagbe/url-shortner-service/apis/server"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +13,5 @@ func serveApiCommand() *cobra.Command {
 			server.InitializeAPI()
 		},
 	}
-
 	return apiCmd
 }
