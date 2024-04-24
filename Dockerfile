@@ -15,7 +15,7 @@ RUN go mod tidy && go mod download
 RUN CGO_ENABLED=1 go build -o urlshortner -a -ldflags '-linkmode external -extldflags "-static"'
 
 # Tells Docker which network port your container listens on
-EXPOSE 8653
+EXPOSE 8080
 
 # Define the command to run your application
-ENTRYPOINT ["./urlshortner","serveapi"]
+# ENTRYPOINT ["./urlshortner","serveapi"]

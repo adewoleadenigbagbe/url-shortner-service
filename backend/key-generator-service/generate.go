@@ -57,7 +57,6 @@ func NewShortlinkGenerator() *ShortlinkGenerator {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	db, err := database.ConnectToSQLite(path)
 	if err != nil {
 		log.Fatal(err)

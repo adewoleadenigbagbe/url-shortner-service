@@ -1,14 +1,35 @@
-version: '1.0'
+version: '3.8'
 
 services:
-  web-api:
+  api:
     container_name: rest-api
     build: .
+    command: ["./urlshortner", "serveapi"]
     ports: 
       - 8653:8653 
     restart: on-failure
     depends_on:
       - redis   # this for other services.
+      - sqlite3        
+    networks:
+      - networkstack
+  
+  billingservice:
+    container_name: billing-service
+    # build: .
+    command: ["./urlshortner", "billing"]
+    restart: on-failure
+    depends_on:
+      - sqlite3        
+    networks:
+      - networkstack
+
+  keygenservice:
+    container_name: key-gen-service
+    # build: .
+    command: ["./urlshortner", "generatelink"]
+    restart: on-failure
+    depends_on:
       - sqlite3        
     networks:
       - networkstack
@@ -19,8 +40,6 @@ services:
     ports:
       - 6379:6379
     command: ["redis-server", "--bind", "redis", "--port", "6379"]
-    env_file:
-     - ./backend/.env.docker
     # environment: 
     #   - REDIS_HOST=redis:6379
     #   - REDIS_PASSWORD=${REDIS_PASSWORD}
