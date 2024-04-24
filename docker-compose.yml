@@ -16,7 +16,7 @@ services:
   
   billingservice:
     container_name: billing-service
-    # build: .
+    build: .
     command: ["./urlshortner", "billing"]
     restart: on-failure
     depends_on:
@@ -26,7 +26,7 @@ services:
 
   keygenservice:
     container_name: key-gen-service
-    # build: .
+    build: .
     command: ["./urlshortner", "generatelink"]
     restart: on-failure
     depends_on:
