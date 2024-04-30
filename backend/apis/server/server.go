@@ -14,6 +14,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+
+	billing "github.com/adewoleadenigbagbe/url-shortner-service/billing-service"
+	linkservice "github.com/adewoleadenigbagbe/url-shortner-service/key-generator-service"
 )
 
 type ApplicationServer struct {
@@ -30,6 +33,12 @@ func (server *ApplicationServer) start() {
 
 	//Register Routes
 	routes.RegisterRoutes(server.BaseApp, server.AppMiddleWare)
+
+	//start the generation key service
+	go linkservice.Run()
+
+	//start the billing service
+	go billing.Run()
 
 	// Start server
 	go func() {

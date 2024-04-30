@@ -13,26 +13,6 @@ services:
       - sqlite3        
     networks:
       - networkstack
-  
-  billingservice:
-    container_name: billing-service
-    build: .
-    command: ["./urlshortner", "billing"]
-    restart: on-failure
-    depends_on:
-      - sqlite3        
-    networks:
-      - networkstack
-
-  keygenservice:
-    container_name: key-gen-service
-    build: .
-    command: ["./urlshortner", "generatelink"]
-    restart: on-failure
-    depends_on:
-      - sqlite3        
-    networks:
-      - networkstack
 
   redis:
     image: redis:latest
