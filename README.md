@@ -32,9 +32,6 @@ Explain each service
 ## Database Design
 
 
-## Architectural Diagram
-
-
 ## Dependencies
 * SQLite3
 * Redis
