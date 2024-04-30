@@ -30,14 +30,34 @@ services:
   sqlite3:
     image: python:3.9-alpine
     container_name: my-sqlite3
-    command: ["sh", "-c", "apk add --no-cache sqlite && python -m pip install sqlite-utils && tail -f /dev/null"]
     volumes:
-      - ./data:/data
+      - ./backend/data:/data
+    command: ["sh", "-c", "apk add --no-cache sqlite && python -m pip install sqlite-utils && tail -f /dev/null"]
     restart: always
     networks:
       - networkstack
+
+  sqlitebrowser:
+    image: linuxserver/sqlitebrowser
+    container_name: sqlitebrowser
+    ports:
+      - 3001:3001
+      - 3000:3000
+    depends_on:
+      - sqlite3
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+      - ENABLE_UWSGI=true
+    volumes:
+      - sqlite_data:/data/db
+    restart: unless-stopped
 
 # Networks to be created to facilitate communication between containers
 networks:
   networkstack:
     driver: bridge
+
+volumes:
+  sqlite_data:
