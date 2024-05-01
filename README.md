@@ -38,7 +38,7 @@ Explain each service
 * Docker (Optional)
 
 ## Usage
-Make sure you have the Redis service and sqlite3 service running on the machine as specified as the dependencies for this project
+Make sure you have the Redis service and sqlite3 service running on the machine as specified as the dependencies for this project. Change the configuration as it suit you in the .env.example
 
 To run locally, cd from the root to the backend directory and run 
 
