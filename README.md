@@ -32,14 +32,25 @@ Explain each service
 ## Database Design
 
 
-## Architectural Diagram
-
-
 ## Dependencies
 * SQLite3
 * Redis
+* Docker (Optional)
 
 ## Usage
+Make sure you have the Redis service and sqlite3 service running on the machine as specified as the dependencies for this project. Change the configuration as it suit you in the .env.example
+
+To run locally, cd from the root to the backend directory and run 
+
+```
+go run main.go serveapi
+```
+
+To run on Docker, cd to the root and run the docker compose file 
+
+```
+docker-compose -f docker-compose.yml up -d
+```
 
 ## Upcoming Features
 Frontend implementation is coming soon. If you are interested in building it , please send an Email

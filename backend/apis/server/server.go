@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +14,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+
+	billing "github.com/adewoleadenigbagbe/url-shortner-service/billing-service"
+	linkservice "github.com/adewoleadenigbagbe/url-shortner-service/key-generator-service"
 )
 
 type ApplicationServer struct {
@@ -21,11 +25,6 @@ type ApplicationServer struct {
 }
 
 func (server *ApplicationServer) start() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	//set echo log
 	server.BaseApp.Echo.Logger.SetLevel(log.INFO)
 
@@ -35,9 +34,16 @@ func (server *ApplicationServer) start() {
 	//Register Routes
 	routes.RegisterRoutes(server.BaseApp, server.AppMiddleWare)
 
+	//start the generation key service
+	go linkservice.Run()
+
+	//start the billing service
+	go billing.Run()
+
 	// Start server
 	go func() {
-		if err := server.BaseApp.Echo.Start(":8653"); err != nil && err != http.ErrServerClosed {
+		port := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
+		if err := server.BaseApp.Echo.Start(port); err != nil && err != http.ErrServerClosed {
 			server.BaseApp.Echo.Logger.Fatal("shutting down the server")
 		}
 	}()
@@ -54,6 +60,11 @@ func (server *ApplicationServer) start() {
 }
 
 func InitializeAPI() {
+	err := godotenv.Load(".env.example")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	app, err := core.ConfigureAppDependencies()
 	if err != nil {
 		log.Fatal(err)

@@ -25,8 +25,8 @@ func NewUrlShortner() *UrlShortner {
 
 func (urlshortner *UrlShortner) Start() error {
 	urlshortner.rootCmd.AddCommand(serveApiCommand())
-	urlshortner.rootCmd.AddCommand(linkserviceCommand())
-	urlshortner.rootCmd.AddCommand(billingserviceCommand())
+	//urlshortner.rootCmd.AddCommand(linkserviceCommand())
+	//urlshortner.rootCmd.AddCommand(billingserviceCommand())
 	return urlshortner.execute()
 }
 

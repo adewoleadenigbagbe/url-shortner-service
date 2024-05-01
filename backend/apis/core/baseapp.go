@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"os"
+	"path/filepath"
 	"time"
 
 	auth "github.com/adewoleadenigbagbe/url-shortner-service/apis/services/auth"
@@ -43,8 +44,13 @@ type BaseApp struct {
 }
 
 func ConfigureAppDependencies() (*BaseApp, error) {
-	//connect to sqllite
-	db, err := database.ConnectToSQLite(dbFile)
+	path, err := filepath.Abs(dbFile)
+	if err != nil {
+		return nil, err
+	}
+
+	//connect to sqlite
+	db, err := database.ConnectToSQLite(path)
 	if err != nil {
 		return nil, err
 	}
