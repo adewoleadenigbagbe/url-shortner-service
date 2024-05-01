@@ -29,9 +29,6 @@ Explain each service
 * Link cloaking
 
 
-## Database Design
-
-
 ## Dependencies
 * SQLite3
 * Redis
