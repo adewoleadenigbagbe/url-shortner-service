@@ -18,9 +18,9 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 
 	//Shortlinks
 	router.POST("/api/v1/shortlink", app.UrlService.CreateShortLink, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
-	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser)
+	router.GET("/api/v1/shortlink", app.UrlService.GetShortLinks, middleware.AuthorizeUser, middleware.AuthourizeOrganizationPermission)
 	router.POST("/api/v1/shortlink/redirect", app.UrlService.RedirectShort)
-	router.POST("/api/v1/shortlink/bulk", app.UrlService.CreateBulkShortLink)
+	router.POST("/api/v1/shortlink/bulk", app.UrlService.CreateBulkShortLink, middleware.AuthorizeUser, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 
 	//Domains
 	router.POST("/api/v1/domain", app.DomainService.CreateDomain, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission)
@@ -36,12 +36,12 @@ func RegisterRoutes(app *core.BaseApp, middleware *middlewares.AppMiddleware) {
 	router.GET("/api/v1/teams/search", app.TeamService.SearchTeam, middleware.AuthorizeAdmin, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 
 	//Tags
-	router.POST("/api/v1/tags", app.TagService.CreateTag, middleware.AuthorizeAdmin)
-	router.POST("/api/v1/tags/add-tag-short", app.TagService.AddShortLinkTag, middleware.AuthorizeAdmin)
-	router.GET("/api/v1/tags/search", app.TagService.SearchTag)
+	router.POST("/api/v1/tags", app.TagService.CreateTag, middleware.AuthorizeUser, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
+	router.POST("/api/v1/tags/add-tag-short", app.TagService.AddShortLinkTag, middleware.AuthorizeUser, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
+	router.GET("/api/v1/tags/search", app.TagService.SearchTag, middleware.AuthorizeUser, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 
 	//Report
-	router.POST("/api/v1/report/links", app.ExportService.GenerateShortLinkReport)
+	router.POST("/api/v1/report/links", app.ExportService.GenerateShortLinkReport, middleware.AuthorizeUser, middleware.AuthourizeOrganizationPermission, middleware.AuthorizeFeaturePermission)
 
 	//statistics
 	router.GET("/api/v1/statistics", app.StatisticsService.GetShortStatistics)
