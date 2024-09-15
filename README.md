@@ -16,7 +16,6 @@ The rest api service exposes all endpoints for app functionality
 The billing service is a cron job that generate revenues and management of pay schedules (creattion & deletion)
 The Key generation service is a cron job that run to generate unused shorlink that can be assigned later for bulk links
 
-Explain each service
 
 ## Features Implementation
 * Shortlink Management
