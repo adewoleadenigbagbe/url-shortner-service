@@ -6,7 +6,7 @@ https://www.marriott.com/molestie/sed/justo/pellentesque/viverra/pede.json?justo
 This project allow for individual and business manage their shortlinks as well detailed anyalytics by choosing the plan deemed fit for them
 
 ## Components
-There are two services for this project which are 
+There are three services for this project which are 
 
 * Rest Api Service
 * Billing Service
